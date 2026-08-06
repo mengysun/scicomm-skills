@@ -31,6 +31,37 @@ said, ask:
 
 Everything upstream of that choice is shared. Do the outline first.
 
+## Before anything else — the environment
+
+The scripts and the figure engine run in a **shared environment**, set up once
+per machine rather than once per project. Get its interpreter now, before Phase 2
+needs matplotlib, and use it for everything the skill runs:
+
+```bash
+PY=$(<skill>/scripts/ensure_env.sh)     # first time ~1 min, thereafter ~2 s
+```
+
+Do this yourself. Do not ask the user to install anything — the whole point of
+the script is that they should never have to think about it.
+
+It lives at `~/.local/share/scicomm-skills/venv` (override with `$SCICOMM_VENV`)
+and holds playwright, a headless Chromium and matplotlib: the same tooling for
+every deck and poster on the machine, and Chromium alone is ~180 MB, so there is no
+reason to install it per project.
+
+**This is deliberately not the project's environment.** Analysis code keeps its
+repo-local venv beside the results it produced; this one only runs build scripts.
+The exception is figure code copied into `figsrc/` that imports the project's own
+modules — run that with the project's python, and everything else with `$PY`.
+
+Two things it cannot install and reports instead: **poppler**
+(`pdfinfo`/`pdftoppm`/`pdfimages`, which `render.py` needs to verify the emitted
+PDF), and **LibreOffice** (`soffice`), only for `pptxcheck.py --pdf`. If either is missing, say so to the user early rather than
+discovering it at the point of failure.
+
+For the `.pptx` deliverable, add its dependency when that path is chosen:
+`<skill>/scripts/ensure_env.sh --pptx`.
+
 ## Non-negotiables
 
 **Never modify the source materials, and leave nothing behind in them.** A
@@ -151,25 +182,12 @@ Layout patterns (claim+figure, two-up, full bleed, statement, divider) are in
 
 ## Phase 4 — Measure
 
-The scripts run in a **shared environment**, set up once per machine rather than
-once per project. Get its interpreter first and use it throughout — do not ask
-the user to install anything, and do not install into the project's own venv:
-
 ```bash
-PY=$(<skill>/scripts/ensure_env.sh)                  # first time ~1 min, then ~2 s
 "$PY" <skill>/scripts/render.py <build-dir>          # → PDF + per-slide PNGs
 "$PY" <skill>/scripts/audit.py  <build-dir>          # → title track + per-slide table
 "$PY" <skill>/scripts/audit.py  <build-dir> --titles # → just the title track
 "$PY" <skill>/scripts/notes.py  <build-dir>          # → notes/<deck>.md
 ```
-
-It lives at `~/.local/share/scicomm-skills/venv` (override with `$SCICOMM_VENV`)
-and is shared with `master-of-poster` — same tooling, no reason for two copies.
-Add the `.pptx` dependency only when that path is chosen:
-`<skill>/scripts/ensure_env.sh --pptx`.
-
-**This is deliberately not the project's environment.** Analysis code keeps its
-repo-local venv beside the results it produced; this one only runs build scripts.
 
 `render.py` fails the build on a missing doctype, content past the slide edge, a
 slide whose content is taller than the slide (silently clipped, because overflow

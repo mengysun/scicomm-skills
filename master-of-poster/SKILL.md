@@ -44,6 +44,34 @@ invented figures, no misleading rounding, no placeholder text — leave a visibl
 `[[TODO: ...]]` marker instead, because a marker gets fixed and a plausible
 invention gets printed.
 
+## Before anything else — the environment
+
+The scripts and the figure engine run in a **shared environment**, set up once
+per machine rather than once per project. Get its interpreter now, before Phase 2
+needs matplotlib, and use it for everything the skill runs:
+
+```bash
+PY=$(<skill>/scripts/ensure_env.sh)     # first time ~1 min, thereafter ~2 s
+```
+
+Do this yourself. Do not ask the user to install anything — the whole point of
+the script is that they should never have to think about it.
+
+It lives at `~/.local/share/scicomm-skills/venv` (override with `$SCICOMM_VENV`)
+and holds playwright, a headless Chromium and matplotlib: the same tooling for
+every poster and deck on the machine, and Chromium alone is ~180 MB, so there is no
+reason to install it per project.
+
+**This is deliberately not the project's environment.** Analysis code keeps its
+repo-local venv beside the results it produced; this one only runs build scripts.
+The exception is figure code copied into `figsrc/` that imports the project's own
+modules — run that with the project's python, and everything else with `$PY`.
+
+Two things it cannot install and reports instead: **poppler**
+(`pdfinfo`/`pdftoppm`/`pdfimages`, which `render.py` needs to verify the emitted
+PDF). If either is missing, say so to the user early rather than
+discovering it at the point of failure.
+
 ## Phase 0 — Recon
 
 Read the source before designing anything. What you are looking for:
@@ -149,29 +177,11 @@ Layout choices worth making deliberately:
 This is the part that makes the difference, and it is not optional. Build,
 measure, re-cut, repeat:
 
-The scripts run in a **shared environment**, set up once per machine rather than
-once per project. Get its interpreter first and use it throughout — do not ask
-the user to install anything, and do not install into the project's own venv:
-
 ```bash
-PY=$(<skill>/scripts/ensure_env.sh)            # first time ~1 min, thereafter ~2 s
 "$PY" <skill>/scripts/render.py <build-dir>    # → pdf/, preview/, fails on defects
 "$PY" <skill>/scripts/probe.py  <build-dir>    # → the box each cell offers
 "$PY" <skill>/scripts/audit.py  <build-dir>    # → fig%, type, words, gaps, contrast
 ```
-
-It lives at `~/.local/share/scicomm-skills/venv` (override with `$SCICOMM_VENV`)
-and holds playwright, a headless Chromium and matplotlib — the same tooling for
-every poster and deck on the machine, and Chromium alone is ~180 MB, so there is
-no reason to install it per project.
-
-**This is deliberately not the project's environment.** Analysis code keeps its
-repo-local venv beside the results it produced; this one only runs build scripts.
-The exception is figure code copied into `figsrc/` that imports the project's own
-modules — run that with the project's python, and everything else with `$PY`.
-
-If poppler's `pdfinfo`/`pdftoppm` are missing, `ensure_env.sh` reports it; pip
-cannot supply them, and `render.py` fails rather than emit an unverified PDF.
 
 `render.py` fails the build on a missing doctype, a page-size mismatch, content
 past the trim, or a block compressed below its content. Those four have each
