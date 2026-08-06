@@ -20,12 +20,14 @@ Symlink rather than copy, so `git pull` updates the skills in place and no
 machine can quietly run a stale version:
 
 ```bash
-git clone <this-repo> ~/scicomm-skills
+git clone https://github.com/mengysun/scicomm-skills.git ~/scicomm-skills
 ~/scicomm-skills/install.sh
 ```
 
-`install.sh` is idempotent, backs up anything it would replace, and prints what
-it did. To install by hand instead:
+`install.sh` works out its own location, so the clone can live anywhere — the
+symlinks it creates point wherever you actually put it. It is idempotent, backs
+up anything it would replace, and prints what it did. To install by hand
+instead:
 
 ```bash
 ln -s ~/scicomm-skills/master-of-poster ~/.claude/skills/master-of-poster
