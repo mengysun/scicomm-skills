@@ -114,7 +114,9 @@ own colours — the palette governs what you author around them. One thing worth
 stylesheet: **emphasis inside a saturated band must be light** — ink-dark bold on
 the accent measures ~2.4:1 and disappears at the back of the room.
 
-Type floors, sizes and density targets are in `references/slide-craft.md`.
+The palette, the type floors and the contrast rule are in
+`references/palette-and-type.md`; density and layout patterns are in
+`references/slide-craft.md`.
 
 ## Phase 3 — Build (HTML path)
 
@@ -149,12 +151,25 @@ Layout patterns (claim+figure, two-up, full bleed, statement, divider) are in
 
 ## Phase 4 — Measure
 
+The scripts run in a **shared environment**, set up once per machine rather than
+once per project. Get its interpreter first and use it throughout — do not ask
+the user to install anything, and do not install into the project's own venv:
+
 ```bash
-python <skill>/scripts/render.py <build-dir>          # → PDF + per-slide PNGs
-python <skill>/scripts/audit.py  <build-dir>          # → title track + per-slide table
-python <skill>/scripts/audit.py  <build-dir> --titles # → just the title track
-python <skill>/scripts/notes.py  <build-dir>          # → notes/<deck>.md
+PY=$(<skill>/scripts/ensure_env.sh)                  # first time ~1 min, then ~2 s
+"$PY" <skill>/scripts/render.py <build-dir>          # → PDF + per-slide PNGs
+"$PY" <skill>/scripts/audit.py  <build-dir>          # → title track + per-slide table
+"$PY" <skill>/scripts/audit.py  <build-dir> --titles # → just the title track
+"$PY" <skill>/scripts/notes.py  <build-dir>          # → notes/<deck>.md
 ```
+
+It lives at `~/.local/share/scicomm-skills/venv` (override with `$SCICOMM_VENV`)
+and is shared with `master-of-poster` — same tooling, no reason for two copies.
+Add the `.pptx` dependency only when that path is chosen:
+`<skill>/scripts/ensure_env.sh --pptx`.
+
+**This is deliberately not the project's environment.** Analysis code keeps its
+repo-local venv beside the results it produced; this one only runs build scripts.
 
 `render.py` fails the build on a missing doctype, content past the slide edge, a
 slide whose content is taller than the slide (silently clipped, because overflow
@@ -226,12 +241,14 @@ Decks converge through revisions and the user's ear is what they converge to.
 | File | Read it when |
 |---|---|
 | `references/deck-architecture.md` | outlining: the arc, claim titles, slide/notes division, builds, timing |
-| `references/slide-craft.md` | canvas, type floors, density, layout patterns, consistency |
+| `references/slide-craft.md` | canvas, density, layout patterns, consistency |
+| `references/palette-and-type.md` | the palette, choosing within it, type floors, contrast |
 | `references/figures-and-numbers.md` | re-cutting figures for projection, how many numbers, significance |
 | `references/pptx-path.md` | the user needs an editable file |
 | `references/failure-modes.md` | before the first build, and when something measures wrong |
 
 Scripts take the build directory as their first argument (`pptxcheck.py` takes a
-file). They need `playwright` with Chromium and `matplotlib`, plus poppler's
-`pdfinfo`/`pdftoppm`; the .pptx path additionally needs `python-pptx`, and
-`pptxcheck.py --pdf` needs `soffice` on PATH.
+file). Run them with the interpreter `scripts/ensure_env.sh` prints; it installs
+playwright, Chromium and matplotlib, and `--pptx` adds python-pptx. Two it cannot
+install and reports instead: poppler (`pdfinfo`/`pdftoppm`) and, for
+`pptxcheck.py --pdf`, LibreOffice (`soffice`).

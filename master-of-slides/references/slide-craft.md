@@ -18,27 +18,12 @@ Keep 0.6 in of margin. The bottom ~1 in of a projected slide is the first thing
 lost to a head, a lectern, or a screen hung too low — do not put anything you
 need read down there, and never a caption.
 
-## Type, as a fraction of slide height
+## Type
 
-Points are a poor guide across canvas sizes; the fraction of slide height is what
-predicts whether the back row can read it. On a 7.5 in slide:
-
-| Element | Fraction | Points | Note |
-|---|---|---|---|
-| Deck title | 7% | 54 pt | |
-| Slide title (the claim) | 4.5% | 34 pt | one line if you can; two is fine, three means rewrite |
-| Body | 3.2% | 24 pt | |
-| Caption, axis label | 2.4% | 18 pt | |
-| Absolute floor | **2.8%** | **16 pt** | one line at this size, never a paragraph |
-
-`audit.py` reports both the point size and the fraction, and flags anything under
-the floor. The floor is not a preference: below it the people at the back stop
-reading and start waiting for you to say it, which is the failure mode a slide
-exists to avoid.
-
-The rule of thumb behind the number: about one inch of projected letter height
-per ten feet of viewing distance. A 24 pt line on a 13.3 in slide thrown onto a
-10 ft screen is roughly 3 in tall, which carries about 30 ft.
+Floors, sizes and the reasoning are in `palette-and-type.md`. The number to carry
+in your head: **the absolute floor is 2.8% of slide height** (16 pt on a 7.5 in
+slide), and 3.2% (24 pt) is a comfortable body size. `audit.py` reports both the
+points and the fraction.
 
 ## Density
 
@@ -103,9 +88,8 @@ obvious in the room:
 - **Colour meaning must not drift.** If warm means "positive" on slide 8, it
   cannot mean "treatment" on slide 12.
 - **Emphasis on a saturated band must advance, not recede.** Ink-dark bold on the
-  accent colour measures about 2.4:1 and disappears at the back. The stylesheet
-  sets `.takeaway b` to butter for this reason; `audit.py` flags anything under
-  3:1.
+  accent measures about 2.4:1 and disappears at the back; the stylesheet sets
+  `.takeaway b` to butter for this reason. See `palette-and-type.md`.
 
 ## Backup slides
 

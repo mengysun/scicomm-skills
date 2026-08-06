@@ -36,27 +36,32 @@ Per-project rather than per-user: symlink into `<project>/.claude/skills/`.
 
 ## Requirements
 
-The skills work as prose without any of this, but the scripts — which are most
-of the value — need:
+The skills set their own environment up — you should not have to. On first use
+each one runs:
 
 ```bash
-uv pip install playwright matplotlib
-playwright install chromium
+<skill>/scripts/ensure_env.sh
 ```
 
-plus **poppler** for `pdfinfo`, `pdftoppm` and `pdfimages`
-(`apt install poppler-utils`, `brew install poppler`, or `conda install poppler`).
+which creates a **shared** environment at `~/.local/share/scicomm-skills/venv`
+(override with `$SCICOMM_VENV`), installs playwright, a headless Chromium and
+matplotlib into it, and prints the path to its python. Both skills use the same
+one: the build tooling is identical for every poster and every deck on a machine,
+and Chromium alone is ~180 MB, so per-project installs buy nothing. First run
+takes about a minute; afterwards it is a two-second check.
 
-Only for the `.pptx` path in `master-of-slides`:
+Deliberately *not* the project's venv. Analysis code keeps its repo-local
+environment beside the results it produced; this is a tool, and tools are shared.
 
-```bash
-uv pip install python-pptx      # to build .pptx
-                                # LibreOffice (`soffice`) for pptxcheck.py --pdf
-```
+Two things it cannot install, and reports instead:
 
-Install into whatever environment you run Claude Code's Bash tool in — a
-repo-local `venv/` is fine, and the skills call scripts by path, so nothing has
-to be on `$PATH`.
+- **poppler** — `pdfinfo`, `pdftoppm`, `pdfimages`
+  (`conda install -c conda-forge poppler`, `apt install poppler-utils`,
+  `brew install poppler`)
+- **LibreOffice** — only for `pptxcheck.py --pdf`, which renders a `.pptx` to see
+  what PowerPoint actually does to its text boxes
+
+For the `.pptx` output path, `ensure_env.sh --pptx` adds `python-pptx`.
 
 ## The palette
 
