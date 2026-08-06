@@ -91,10 +91,15 @@ Fig. 3" — either state the claim without it or drop the claim.
 
 ## Process
 
-**Never modify source materials.** Read them; if figure code must run, copy it
-into your own scratch directory first. Each revision goes in a new folder so the
-previous deliverable stays intact and comparable — and so "the version I
-printed" always still exists.
+**Never modify source materials — and leave no output in them either.** Copying
+a script out is only half of it: analysis code usually writes to a relative
+`figures/` or `../results/`, so the copy still lands its output in the original
+tree unless you redirect it. Read the script's output paths before you run it.
+Cached data, re-run outputs and extracted vectors belong in the build folder,
+which is where the poster that needs them lives.
+
+Each revision goes in a new folder so the previous deliverable stays intact and
+comparable — and so "the version I printed" always still exists.
 
 **Verify that at the end**, don't just intend it:
 

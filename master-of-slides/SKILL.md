@@ -33,10 +33,27 @@ Everything upstream of that choice is shared. Do the outline first.
 
 ## Non-negotiables
 
-**Never modify the source materials.** Read them; copy figure code into a scratch
-directory if it must run. Each revision goes in a **new folder** so the version
-the user already reviewed still exists. Verify at the end:
-`find <sources> -newer <marker> -type f` should be empty.
+**Never modify the source materials, and leave nothing behind in them.** A
+research codebase is the canonical record of the analysis; a deck is a downstream
+artifact, and the build should be deletable without touching it.
+
+- **Read, do not edit.** If figure code has to run, copy it into the build
+  folder's `figsrc/` and run it there.
+- **Check where it writes before you run it.** Analysis scripts commonly save to
+  a relative `figures/` or `../results/`, so a *copied* script can still deposit
+  output back into the original tree. Redirect those paths into the build folder.
+- **Intermediate results live with the build** — cached data, re-run outputs,
+  converted figures. They belong beside the deck that needs them, not beside the
+  analysis that produced them.
+- **Each revision is a new folder**, so the version the user already reviewed
+  still exists.
+
+Verify at the end rather than assuming it:
+
+```bash
+touch /tmp/build-start                                   # before you begin
+find <source-dirs> -newer /tmp/build-start -type f       # must be empty at the end
+```
 
 **Every number traces** — to the source or to a cached re-run you can point at.
 No invented figures, no misleading rounding. If something is missing, leave a
@@ -50,9 +67,13 @@ Read the source, and settle three things before writing a slide:
 - **The audience and the slot.** A 12-minute conference talk, a 50-minute
   seminar, and a lab meeting are three different decks from the same work. About
   **one minute per content slide** is the planning number.
-- **The figures and their provenance.** Can you re-plot from code or data? A
-  journal figure dropped onto a slide is illegible — it was authored 3.5–7 in
-  wide with 7–9 pt type. Plan to re-emit at slide size.
+- **The figures and their provenance**, per figure. With the code or data you
+  re-emit at slide size — a journal figure dropped onto a slide is illegible, it
+  was authored 3.5–7 in wide with 7–9 pt type. With only an artifact you place it
+  **as supplied**, without recolouring, and logos exactly as given. If a supplied
+  figure is too low-resolution or its type too small, say so early and ask for
+  the source; you cannot fix it by stretching it.
+  `references/figures-and-numbers.md` has the decision table.
 
 Sources vary; the job does not:
 
@@ -87,10 +108,11 @@ Copy `assets/slides.css` and `assets/slidefig.py` into the build folder. They
 carry the palette, type scale, slide layouts and figure style as one system so
 the deck and its figures agree.
 
-Two rules from the stylesheet worth knowing without reading it: **only two
-colours ever encode data, always beside a word label**, and **emphasis inside a
-saturated band must be light** — ink-dark bold on the accent is ~2.4:1 and
-disappears at the back of the room.
+Colour comes from one palette used across the deck and any figure you generate;
+which swatch means what is yours to assign. Supplied figures and logos keep their
+own colours — the palette governs what you author around them. One thing worth knowing without reading the
+stylesheet: **emphasis inside a saturated band must be light** — ink-dark bold on
+the accent measures ~2.4:1 and disappears at the back of the room.
 
 Type floors, sizes and density targets are in `references/slide-craft.md`.
 
@@ -178,7 +200,7 @@ deck_build_<n>/
 ├── README.md       what changed, what was measured, what was left alone
 ├── assets/         figures/ (emitted at slide size), logos, fonts
 ├── css/slides.css
-├── figsrc/         figure code + cached plot data
+├── figsrc/         figure code (copied here, never run in place) + cached data
 ├── html/*.html     one file per deck
 ├── pdf/*.pdf       one multi-page PDF per deck
 ├── notes/*.md      extracted speaker notes

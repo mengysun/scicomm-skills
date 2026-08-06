@@ -1,51 +1,62 @@
 # Palette and type
 
-## The colour rule that matters
+## The palette
 
-**Only two colours ever encode data, and every use is paired with a word.**
+One set of colours, used for the page chrome and for any figure you generate, so
+that everything you make looks like it belongs together. **Which swatch means
+what is yours to decide** — that is a property of your data, not of the palette.
 
-Everything else — section chrome, bands, rules, grounds — is neutral plus one
-warm accent. This is not minimalism for its own sake: a categorical set of four
-or five pastel accents fails colour-vision separation (plum against blue reads
-at ΔE ≈ 10 to a normal observer, sage against terracotta at ΔE ≈ 3 under
-protanopia), while a single warm/cool pair passes — but only if the word is
-there too, so the reader never has to resolve the colour to read the result.
+It governs what you author. A figure you were supplied rather than made keeps its
+own colours, and a logo is placed exactly as given — see `figure-craft.md`. When
+the supplied figures are colourful, keep your chrome neutral so the two systems
+do not fight.
 
-Word-labelling also means the sheet still works photocopied, photographed under
-bad light, or seen from an angle. Direct-label the series next to the data
-rather than relying on a legend box wherever the panel allows it.
+| Swatch | Hex | | Swatch | Hex |
+|---|---|---|---|---|
+| terra | `#D56C55` | | plum | `#AB85AC` |
+| terra-mid | `#E8B19D` | | plum-pale | `#D4C2D9` |
+| terra-pale | `#F1D4C9` | | gold | `#EAC264` |
+| blue-deep | `#738FC1` | | sand-mid | `#F3DAA9` |
+| blue-mid | `#A9BFE3` | | sage | `#7E9D90` |
+| blue-pale | `#C9D7EE` | | umber | `#905426` |
+| green-mid | `#BFD598` | | stone | `#E3DCD0` |
+| green-deep | `#7AA974` | | cream | `#FFEDCE` |
+| green-pale | `#DCECCB` | | butter | `#FFEDC0` |
 
-## The default palette
+Neutrals alongside it: ink `#2E2A26`, ink-soft `#574F47`, muted `#8A8078`,
+hair `#C9C0B6`, paper `#FFFFFF`, paper-tint `#FAF4E9`.
 
-Defined once as CSS variables in `assets/poster.css`, and mirrored in
-`assets/posterfig.py` so figures and page agree.
+`poster.css` names all of these and then assigns a few **roles** from them —
+`--pos`, `--neg`, `--accent`, `--paper-warm`, `--band`. Those are a starting
+assignment for the common case of a two-group comparison, not a restriction:
+rename them, reassign them, add more when your data has more classes.
+`posterfig.py` mirrors the same names, and `CYCLE` is a default ordering for
+categorical series, installed as matplotlib's colour cycle by `setup()` so
+unstyled plots already match.
 
-| Role | Hex | Use |
-|---|---|---|
-| `--pos` | `#D56C55` | data encoding — class A, always beside its word |
-| `--neg` | `#738FC1` | data encoding — class B, always beside its word |
-| `--accent` | `#905426` | section chrome, before/after states, single-series points |
-| `--ink` | `#2E2A26` | body text |
-| `--ink-soft` | `#574F47` | captions |
-| `--muted` | `#8A8078` | secondary notes |
-| `--hair` | `#C9C0B6` | rules, block borders |
-| `--paper` | `#FFFFFF` | cards |
-| `--paper-warm` | `#FFEDCE` | sheet ground |
-| `--paper-tint` | `#FAF4E9` | panel ground |
-| `--band` | `#E3DCD0` | footer strip |
-| `--butter` | `#FFEDC0` | emphasis *on* the accent band |
+### Choosing within it
 
-Inert tints available for grounds and fills, never for encoding: `#BFD598`
-`#7AA974` `#DCECCB` `#EAC264` `#F3DAA9` `#A9BFE3` `#C9D7EE` `#E8B19D` `#F1D4C9`
-`#AB85AC` `#D4C2D9` `#7E9D90`.
+- **Saturated members separate; pale ones do not.** terra, blue-deep,
+  green-deep, gold, plum, sage and umber hold apart at small sizes and in print.
+  The pale tints are for fills, bands and grounds, where the job is not to
+  shout.
+- **Beyond about five categories**, colour stops doing the work no matter which
+  palette you use. Small multiples, direct labels, or ordering by value carry
+  more than a sixth hue.
+- **A word beside the colour is usually free**, and it buys a figure that still
+  reads photocopied, photographed under bad light, or by someone with
+  colour-vision deficiency. Direct-label the series next to the data where the
+  panel allows it rather than sending the reader to a legend. This is a habit
+  worth having, not a law — a four-category scatter with a legend is fine.
+- **Keep a colour's meaning fixed** across a sheet or a deck. Whatever terra
+  means in the first figure it must mean in the last.
 
 ### Swapping in another palette
 
-Change `--pos`, `--neg`, `--accent` in `poster.css` and `POS`, `NEG`, `ACCENT`
-in `posterfig.py`. Keep the rule, not the hexes: two encoding colours, one
-accent, everything else neutral. If the user supplies a palette sheet, extract
-the hexes and assign roles by warmth and saturation — the two most separated
-mid-saturation hues become the encoding pair.
+Replace the named swatches at the top of `poster.css` and the same names in
+`posterfig.py`; the roles and `CYCLE` follow. If the user hands you a palette
+sheet, extract the hexes and keep the same shape: a handful of saturated members
+for encoding, the tints for grounds.
 
 ## Contrast
 

@@ -4,9 +4,11 @@ Every panel is authored at its *final printed size in inches* with font sizes in
 real points, so a figure embedded at its authored width has exactly the type size
 declared here. Nothing is scaled up after the fact.
 
-Colour rule: only POS/NEG may encode data, and every use is paired with a word label. All
-other chrome is ink grey plus the single warm accent. The four pastel accents
-fail CVD separation as a categorical set and are never used to distinguish series.
+Colour comes from one palette (below) so that everything you make looks like it
+belongs together. Which colour means what is yours to decide — it depends on the
+data. `CYCLE` holds the members that stay distinguishable from each other, in a
+sensible order for a categorical encoding; the pale tints are for fills, bands
+and grounds, where separation matters less than not shouting.
 
 Text is emitted as paths (``svg.fonttype='path'``) so the rendered PDF is
 identical regardless of what fonts the rendering host has installed.
@@ -30,13 +32,26 @@ DATA_PATH = HERE / "plotdata.json"
 DATA = json.loads(DATA_PATH.read_text()) if DATA_PATH.exists() else {}
 
 # ---------------------------------------------------------------- palette ---
-# Two data-encoding colours and no more. Every use is paired with a word label,
-# so the reader never has to resolve the colour to read the result — which also
-# means the figure survives colour-vision deficiency and greyscale printing.
-# Rename these to whatever the two classes in your data are.
-POS = "#D56C55"      # class A — data encoding, always beside its word
-NEG = "#738FC1"      # class B — data encoding, always beside its word
-ACCENT = "#905426"   # single warm accent: chrome, and before/after states
+# ------------------------------------------------------------- the palette ---
+# The full sheet. Draw from it; assign meaning to suit your data.
+TERRA, TERRA_MID, TERRA_PALE = "#D56C55", "#E8B19D", "#F1D4C9"
+BLUE,  BLUE_MID,  BLUE_PALE  = "#738FC1", "#A9BFE3", "#C9D7EE"
+GREEN, GREEN_DEEP, GREEN_PALE = "#BFD598", "#7AA974", "#DCECCB"
+PLUM,  PLUM_PALE  = "#AB85AC", "#D4C2D9"
+GOLD,  SAND       = "#EAC264", "#F3DAA9"
+SAGE,  UMBER      = "#7E9D90", "#905426"
+
+# A default order for categorical series: the saturated members first, because
+# they hold apart at small sizes and in print. Slice it, reorder it, or ignore
+# it — `setup()` installs it as the matplotlib colour cycle so unstyled plots
+# already look like the rest of your work.
+CYCLE = [TERRA, BLUE, GREEN_DEEP, GOLD, PLUM, SAGE, UMBER, BLUE_MID]
+
+# Convenient aliases for the very common two-group comparison. Nothing requires
+# you to use them, and nothing stops you adding a third.
+POS = TERRA          # e.g. the "more/positive/treatment" group
+NEG = BLUE           # e.g. the "less/negative/control" group
+ACCENT = UMBER      # chrome, and single-series points
 INK = "#2E2A26"
 MUTED = "#8A8078"
 FAINT = "#C9C0B6"
@@ -64,6 +79,7 @@ MS = 24          # marker size in points (scatter uses s=MS**2 scaled below)
 
 def setup():
     matplotlib.rcParams.update({
+        "axes.prop_cycle": matplotlib.cycler(color=CYCLE),
         "svg.fonttype": "path",
         "pdf.fonttype": 42,
         "font.family": "sans-serif",

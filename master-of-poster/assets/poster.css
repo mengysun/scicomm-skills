@@ -5,12 +5,11 @@
    Each variant sets its own `@page { size: W H; margin: 0 }` and
    `--page-w` / `--page-h`; everything else lives here.
 
-   COLOUR RULE (validated against the supplied palette sheet, 2026-07-24):
-   only --pos / --neg may encode data, and every use is paired with a word
-   label. Section chrome is ink grey plus the single warm --accent. The four
-   pastel accents fail colour-vision separation as a categorical set
-   (plum vs blue dE 10.2 to a normal observer; sage vs terracotta dE 3.3 under
-   protanopia) and are therefore used only as inert tints, never as encodings.
+   COLOUR: one palette, drawn from for both figures and chrome, so everything
+   looks like it belongs together. Which swatch means what is yours to decide —
+   that depends on the data. The role variables below are a starting assignment,
+   not a restriction; reassign them, and add more when your data has more
+   classes.
 
    TYPE FLOORS (at final print size, enforced by qa/check_type.py):
    title 90pt · authors 40pt · section headers 48pt · body 28pt

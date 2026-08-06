@@ -10,10 +10,10 @@
        :root { --slide-w: 13.333in; --slide-h: 7.5in; }
    or 10in x 7.5in for 4:3.
 
-   COLOUR RULE: only --pos / --neg ever encode data, and every use is paired
-   with a word label, so a reader never has to resolve a colour to read a
-   result — which also means the slide survives a bad projector, a photograph,
-   and colour-vision deficiency. Everything else is neutral plus one accent.
+   COLOUR: one palette, drawn from for both figures and chrome. Which swatch
+   means what is yours to decide. The role variables are a starting assignment,
+   not a restriction — reassign them, and add more when your data has more
+   classes.
 
    TYPE: the floor that matters is a fraction of slide height, because that is
    what predicts whether the back row can read it. ~2.8% of height is the floor
@@ -21,19 +21,29 @@
    ========================================================================== */
 
 :root {
-  /* ---------------------------------------------------------- palette ---- */
-  --pos:        #D56C55;      /* data encoding — class A, always beside its word */
-  --neg:        #738FC1;      /* data encoding — class B, always beside its word */
-  --accent:     #905426;      /* the single chrome accent                       */
+  /* ------------------------------- the palette sheet, named ---------------
+     The full set, so a swatch can be reached by name rather than by hex.
+     Swap these wholesale for another sheet and the roles below follow. */
+  --green-mid:#BFD598;  --green-deep:#7AA974;  --green-pale:#DCECCB;
+  --gold:#EAC264;       --sand-mid:#F3DAA9;    --cream:#FFEDCE;
+  --blue-deep:#738FC1;  --blue-mid:#A9BFE3;    --blue-pale:#C9D7EE;
+  --terra:#D56C55;      --terra-mid:#E8B19D;   --terra-pale:#F1D4C9;
+  --plum:#AB85AC;       --plum-pale:#D4C2D9;   --sage:#7E9D90;
+  --umber:#905426;      --stone:#E3DCD0;       --butter-raw:#FFEDC0;
+
+  /* ------------------------------------------- roles the templates use ---- */
+  --pos:        var(--terra);      /* a starting assignment for a two-group  */
+  --neg:        var(--blue-deep);  /* comparison — rename or reassign freely */
+  --accent:     var(--umber);      /* the single chrome accent                       */
   --ink:        #2E2A26;
   --ink-soft:   #574F47;
   --muted:      #8A8078;
   --hair:       #C9C0B6;
   --paper:      #FFFFFF;
-  --paper-warm: #FFEDCE;
+  --paper-warm: var(--cream);
   --paper-tint: #FAF4E9;
-  --band:       #E3DCD0;
-  --butter:     #FFEDC0;      /* emphasis *on* the accent, never ink on accent  */
+  --band:       var(--stone);
+  --butter:     var(--butter-raw);  /* emphasis *on* the accent, never ink on it */
 
   /* ------------------------------------------------------- type scale ---- */
   /* sized for a 7.5 in tall slide; scale proportionally for other canvases   */

@@ -68,9 +68,14 @@ question-time pressure you will look for the claim.
 
 ## Process
 
-**Never modify the source materials.** Read them; copy figure code into a scratch
-directory if it has to run. Each revision goes in a new folder so the version the
-user already reviewed still exists. Verify rather than assume:
+**Never modify the source materials — and leave no output in them either.**
+Copying a script out is only half of it: analysis code usually writes to a
+relative `figures/` or `../results/`, so the copy still lands its output in the
+original tree unless you redirect it. Read the script's output paths before you
+run it. Cached data and re-run outputs belong in the build folder.
+
+Each revision goes in a new folder so the version the user already reviewed still
+exists. Verify rather than assume:
 `find <sources> -newer <marker> -type f` should come back empty.
 
 **Check the delivered file, not the source.** `pdfinfo` for the page count and

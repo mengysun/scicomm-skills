@@ -17,11 +17,27 @@ gives poor typography and no way to measure the result. The browser gives exact
 trim size, real text metrics, and a DOM you can interrogate — which is what makes
 everything else in this skill possible.
 
-**Never modify the source materials.** Read them. If figure code must run, copy it
-into a scratch directory first. Each revision goes in a **new folder**, so the
-version the user already looked at still exists and the two can be compared.
-Verify this at the end rather than assuming it:
-`find <sources> -newer <marker> -type f` should come back empty.
+**Never modify the source materials, and leave nothing behind in them.** A
+research codebase is the canonical record of the analysis; a poster is a
+downstream artifact, and the build should be deletable without touching it.
+
+- **Read, do not edit.** If figure code has to run, copy it into the build
+  folder's `figsrc/` and run it there.
+- **Check where it writes before you run it.** Analysis scripts commonly save to
+  a relative `figures/` or `../results/`, so a *copied* script can still deposit
+  output back into the original tree. Redirect those paths into the build folder.
+- **Intermediate results live with the build** — cached data, re-run outputs,
+  converted figures, extracted vectors. They belong beside the poster that needs
+  them, not beside the analysis that produced them.
+- **Each revision is a new folder**, so the version the user already looked at
+  still exists and the two can be compared.
+
+Verify at the end rather than assuming it:
+
+```bash
+touch /tmp/build-start                                   # before you begin
+find <source-dirs> -newer /tmp/build-start -type f       # must be empty at the end
+```
 
 **Every number traces.** To the source, or to a cached re-run you can point at. No
 invented figures, no misleading rounding, no placeholder text — leave a visible
@@ -34,9 +50,14 @@ Read the source before designing anything. What you are looking for:
 
 - **The claim chain.** What is the one sentence a visitor should leave with, and
   what is the shortest path of evidence to it?
-- **The figures and their provenance.** For each, can you re-plot it from code or
-  data, or must you extract it from a PDF/deck? Run `pdfimages -list` on any PDF
-  you might crop from — an embedded 100 ppi panel will print soft at poster size.
+- **The figures and their provenance**, per figure. Do you have the plotting
+  code or the data, a vector artifact, or only a raster? This decides what you
+  are allowed to do: a figure you can regenerate you author at display size in
+  the palette; a figure you were merely given you place **as supplied**, without
+  recolouring it — and logos are placed exactly as given, never restyled. Run
+  `pdfimages -list` on any PDF you might crop from; an embedded 100 ppi panel
+  will print soft, and that is worth raising before you build a layout on it.
+  `references/figure-craft.md` has the decision table.
 - **The numbers**, and the exact sentence in the source that reports each one.
   You will need those sentences later to check that your labels name the right
   quantity.
@@ -79,10 +100,13 @@ Copy `assets/poster.css` and `assets/posterfig.py` into the build folder. They
 carry the palette, type scale, and layout primitives as one system, so the page
 and the figures agree without being kept in sync by hand.
 
-The colour rule, in one line: **only two colours ever encode data, and every use
-is paired with a word.** Everything else is neutral plus one warm accent. See
-`references/palette-and-type.md` for why, for the default hexes, for how to swap
-in a supplied palette, and for the type floors.
+Colour comes from one palette, used for the page chrome and for any figure you
+generate, so the whole sheet looks like one thing. Which swatch means what is
+yours to decide — that is a property of the data, not of the palette. Figures
+and logos you were supplied rather than made keep their own colours; the palette
+governs what you author around them. See
+`references/palette-and-type.md` for the sheet, for how to swap in another, for
+choosing within it, and for the type floors.
 
 ## Phase 3 — Build
 
@@ -189,7 +213,7 @@ poster_build_<n>/
 ├── README.md         what changed, what was measured, what was left alone
 ├── assets/           logos, fonts, figures/ (the emitted plates)
 ├── css/poster.css
-├── figsrc/           figure code + cached plot data
+├── figsrc/           figure code (copied here, never run in place) + cached data
 ├── html/*.html
 ├── pdf/*.pdf
 └── preview/*.png

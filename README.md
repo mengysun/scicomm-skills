@@ -58,18 +58,20 @@ Install into whatever environment you run Claude Code's Bash tool in — a
 repo-local `venv/` is fine, and the skills call scripts by path, so nothing has
 to be on `$PATH`.
 
-## The palette is a starting point, not a rule
+## The palette
 
-Both skills ship with a specific warm palette in `assets/poster.css` /
-`assets/slides.css` and mirrored in `assets/posterfig.py` / `assets/slidefig.py`.
-It is one particular sheet, and you should swap it.
+Both skills ship with the same warm sheet — named in `assets/poster.css` /
+`assets/slides.css` and mirrored in `assets/posterfig.py` / `assets/slidefig.py`,
+so a figure and the page it sits on draw from one set.
 
-What is worth keeping is the *rule* rather than the hexes: **only two colours
-ever encode data, and every use is paired with a word label.** Everything else
-is neutral plus one accent. That survives colour-vision deficiency, greyscale
-printing, a bad projector, and a photograph taken at an angle — which a
-categorical set of five pastels does not. `references/palette-and-type.md`
-explains the swap and the reasoning.
+It is there to be drawn from, not to dictate meaning: which swatch encodes what
+depends on your data. It applies to what you author — grounds, chrome, and any
+figure you generate. Figures and logos you were merely handed are placed as
+supplied and never recoloured. `setup()` installs a sensible ordering of the saturated
+members as matplotlib's colour cycle, so plots match without being told to.
+Swapping the whole sheet for another is one edit in each file —
+`references/palette-and-type.md` covers it, along with what actually separates
+well and where colour stops carrying the load.
 
 ## Layout
 

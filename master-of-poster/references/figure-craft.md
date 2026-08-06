@@ -3,9 +3,69 @@
 The plates are the poster. Everything here is about making them legible at
 arm's length and honest at any distance.
 
-## Regenerate; do not scale up, and do not crop
+## What you can actually do depends on what you were given
 
-Three sources of figures, in descending order of preference:
+Settle this per figure, before planning any layout around it.
+
+| What you have | What you can do |
+|---|---|
+| The plotting code, or the data | Re-plot at display size, in the palette. Full control. |
+| A vector figure (PDF, SVG, EPS) | Extract as vector and place **as supplied**. Sharp at any size. |
+| A raster only | Check its ppi first, then place **as supplied** — or ask for better. |
+| A logo or institutional mark | Place **exactly as supplied**. Nothing else. |
+
+### Figures you cannot regenerate are not yours to restyle
+
+Most of the time the user has the artifacts and not the source. Then:
+
+**Use the figure as supplied. Do not recolour it to the palette.** Colour inside
+a result figure usually carries meaning — a class, a scale, a threshold, a
+condition — and from the outside you cannot verify which. Recolouring by image
+manipulation also degrades the file. A figure that arrives in its own colours and
+stays in them is honest; one you have tinted is a claim you did not check.
+
+**Logos and institutional marks are untouchable.** No recolouring, no restyling,
+no redrawing, no cropping beyond choosing among lockups the owner already
+provides. They are governed by someone else's brand rules, and they are the one
+element on the sheet a viewer will recognise as wrong.
+
+**The palette still governs everything you author** — grounds, section headers,
+bands, rules, callouts, the take-home, the title block. That is what lets a sheet
+carrying foreign figures still read as one thing.
+
+When the supplied figures bring loud colours of their own, **turn your own chrome
+down**: neutral grounds, the accent used sparingly. Two colour systems competing
+on one surface is worse than either alone.
+
+### Minimal, disclosed intervention
+
+Occasionally a supplied vector figure has one element below the legibility floor
+— a label set at 10 pt inside an otherwise fine drawing. Scaling just that
+element, in the vector source, is defensible. Three conditions make it so: it is
+the smallest change that fixes the problem, it touches nothing that carries data,
+and **you tell the user you did it** and offer to revert. Silent restyling of
+someone's figure is not the same thing.
+
+### When a supplied figure will not survive
+
+You cannot fix a low-resolution raster or 8 pt axis labels without the source.
+Say so plainly and early — "this panel is embedded at 100 ppi and will print near
+128 dpi; can you send the source or a higher-resolution export?" — rather than
+upscaling it silently or shipping something illegible. A poster or slide with one
+soft figure on it is a problem the user can solve if they know about it in time,
+and cannot if they find out at the printer.
+
+### Mixed provenance
+
+If some figures are regenerated and others supplied, the sheet will look like two
+styles. Better to regenerate all of them or none of them within one surface. When
+that is not possible, group the supplied ones together rather than alternating,
+and keep your own chrome neutral so the seam reads as sections rather than as
+inconsistency.
+
+## When you can regenerate
+
+With the source in hand, prefer in this order:
 
 1. **Re-plot from the analysis code or cached data.** Full control of size, type
    and palette. Author at the width the plate is displayed at.
