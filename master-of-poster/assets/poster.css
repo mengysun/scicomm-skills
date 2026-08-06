@@ -1,0 +1,414 @@
+/* ==========================================================================
+   IC2S2 poster suite — shared design system
+   "The strength of weird ties" · Sun & McCandlish
+
+   Each variant sets its own `@page { size: W H; margin: 0 }` and
+   `--page-w` / `--page-h`; everything else lives here.
+
+   COLOUR RULE (validated against the supplied palette sheet, 2026-07-24):
+   only --pos / --neg may encode data, and every use is paired with a word
+   label. Section chrome is ink grey plus the single warm --accent. The four
+   pastel accents fail colour-vision separation as a categorical set
+   (plum vs blue dE 10.2 to a normal observer; sage vs terracotta dE 3.3 under
+   protanopia) and are therefore used only as inert tints, never as encodings.
+
+   TYPE FLOORS (at final print size, enforced by qa/check_type.py):
+   title 90pt · authors 40pt · section headers 48pt · body 28pt
+   captions 22pt · hero takeaway 60pt
+   ========================================================================== */
+
+/* ------------------------------------------------------------------ fonts
+   Drop OTF/TTF files into `assets/fonts/` to pin rendering; if they are absent
+   these rules fail silently and the generic stacks below take over, which is
+   fine for drafting but means the printed sheet depends on the render host.
+   Pin them before the final render. */
+@font-face { font-family: "PosterSans"; src: url("../assets/fonts/NimbusSans-Regular.otf")    format("opentype"); font-weight: 400; font-style: normal; }
+@font-face { font-family: "PosterSans"; src: url("../assets/fonts/NimbusSans-Bold.otf")       format("opentype"); font-weight: 700; font-style: normal; }
+@font-face { font-family: "PosterSans"; src: url("../assets/fonts/NimbusSans-Italic.otf")     format("opentype"); font-weight: 400; font-style: italic; }
+@font-face { font-family: "PosterSans"; src: url("../assets/fonts/NimbusSans-BoldItalic.otf") format("opentype"); font-weight: 700; font-style: italic; }
+@font-face { font-family: "PosterSerif"; src: url("../assets/fonts/P052-Roman.otf")      format("opentype"); font-weight: 400; font-style: normal; }
+@font-face { font-family: "PosterSerif"; src: url("../assets/fonts/P052-Bold.otf")       format("opentype"); font-weight: 700; font-style: normal; }
+@font-face { font-family: "PosterSerif"; src: url("../assets/fonts/P052-Italic.otf")     format("opentype"); font-weight: 400; font-style: italic; }
+@font-face { font-family: "PosterSerif"; src: url("../assets/fonts/P052-BoldItalic.otf") format("opentype"); font-weight: 700; font-style: italic; }
+@font-face { font-family: "PosterSlab"; src: url("../assets/fonts/C059-Roman.otf") format("opentype"); font-weight: 400; }
+@font-face { font-family: "PosterSlab"; src: url("../assets/fonts/C059-Bold.otf")  format("opentype"); font-weight: 700; }
+@font-face { font-family: "PosterMono"; src: url("../assets/fonts/NimbusMonoPS-Regular.otf") format("opentype"); font-weight: 400; }
+
+:root {
+  /* ---------------- palette: the supplied sheet, verbatim ---------------- */
+  --green-mid:#BFD598;  --green-deep:#7AA974;  --green-pale:#DCECCB;
+  --gold:#EAC264;       --sand-mid:#F3DAA9;    --cream:#FFEDCE;
+  --blue-deep:#738FC1;  --blue-mid:#A9BFE3;    --blue-pale:#C9D7EE;
+  --terra:#D56C55;      --terra-mid:#E8B19D;   --terra-pale:#F1D4C9;
+  --plum:#AB85AC;       --plum-pale:#D4C2D9;   --sage:#7E9D90;
+  --umber:#905426;      --stone:#E3DCD0;       --butter:#FFEDC0;
+
+  /* ------------- semantic roles (the only ones templates use) ------------ */
+  --pos:        var(--terra);      /* positive interactions — data encoding */
+  --neg:        var(--blue-deep);  /* negative interactions — data encoding */
+  --accent:     var(--umber);      /* the single chrome accent             */
+  --ink:        #2E2A26;
+  --ink-soft:   #574F47;
+  --muted:      #8A8078;
+  --hair:       #C9C0B6;
+  --paper:      #FFFFFF;
+  --paper-warm: var(--cream);
+  --paper-tint: #FAF4E9;
+  --band:       var(--stone);
+
+  /* ------------------------------ type scale ---------------------------- */
+  --fs-title:   112pt;   /* floor  90 */
+  --fs-sub:      46pt;   /* floor  40 */
+  --fs-hero:     76pt;   /* floor  60 */
+  --fs-h2:       54pt;   /* floor  48 */
+  --fs-h3:       38pt;
+  --fs-body:     31pt;   /* floor  28 */
+  --fs-lead:     36pt;
+  --fs-cap:      25pt;   /* floor  22 */
+  --fs-micro:    23pt;   /* floor  22 — footer/reference minimum */
+  --fs-stat:     92pt;
+  --fs-statlab:  27pt;
+
+  /* -------------------------------- rhythm ------------------------------ */
+  --margin: 1.05in;      /* >= 1in from trim on every side */
+  --gutter: 0.52in;      /* consistent column gutter        */
+  --pad:    0.52in;      /* uniform padding inside blocks   */
+  --clear:  0.42in;      /* >= 0.4in clear around figures   */
+  --radius: 0.16in;
+  --rule:   0.035in;
+}
+
+/* ------------------------------------------------------------------ reset */
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; padding: 0;
+  width: var(--page-w); height: var(--page-h);
+  overflow: hidden;                      /* anything past the trim is a bug */
+  background: var(--paper);
+  color: var(--ink);
+  font-family: "PosterSans", Helvetica, Arial, sans-serif;
+  font-size: var(--fs-body);
+  line-height: 1.34;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+img, svg { display: block; max-width: 100%; }
+p { margin: 0 0 0.30em; }
+p:last-child { margin-bottom: 0; }
+strong { font-weight: 700; }
+sup { font-size: 0.70em; vertical-align: super; line-height: 0; }
+
+/* ------------------------------------------------------------ page shell */
+.poster {
+  width: var(--page-w); height: var(--page-h);
+  padding: var(--margin);
+  display: flex; flex-direction: column;
+  gap: var(--gutter);
+}
+
+/* ------------------------------------------------------------ title block */
+.titleblock { display: flex; align-items: center; gap: 0.75in; }
+.titleblock .logo { flex: 0 0 auto; }
+.titleblock .logo img { height: 2.5in; width: auto; }
+.titleblock .logo img.mark { height: 2.9in; }
+.titleblock .tt { flex: 1 1 auto; min-width: 0; }
+
+h1.title {
+  margin: 0 0 0.14em;
+  font-size: var(--fs-title);
+  line-height: 1.02;
+  font-weight: 700;
+  letter-spacing: -0.012em;
+}
+.authors  { font-size: var(--fs-sub); font-weight: 700; margin: 0 0 0.06em; }
+.affil    { font-size: calc(var(--fs-sub) * 0.78); color: var(--ink-soft); margin: 0; }
+.venue    { font-size: var(--fs-cap); color: var(--muted); letter-spacing: 0.10em;
+            text-transform: uppercase; margin: 0 0 0.30em; }
+
+/* -------------------------------------------------- banner-pill headers */
+.pill {
+  display: block;
+  margin: 0 0 var(--clear);
+  padding: 0.20in var(--pad);
+  border-radius: var(--radius);
+  background: var(--accent);
+  color: #fff;
+  font-size: var(--fs-h2);
+  font-weight: 700;
+  line-height: 1.10;
+  letter-spacing: 0.004em;
+}
+.pill.ghost { background: none; color: var(--ink); border-bottom: var(--rule) solid var(--accent);
+              border-radius: 0; padding-left: 0; padding-right: 0; }
+.pill.ink   { background: var(--ink); }
+.pill.num::before {
+  content: attr(data-n);
+  display: inline-block; min-width: 1.15em; margin-right: 0.34em;
+  padding: 0 0.14em; border-radius: 0.08in;
+  background: rgba(255,255,255,0.22); text-align: center;
+}
+.pill.ghost.num::before { background: var(--accent); color: #fff; }
+
+/* -------------------------------------------------------------- sections */
+.block {
+  padding: var(--pad);
+  border-radius: var(--radius);
+  background: var(--paper-tint);
+  display: flex; flex-direction: column;
+  min-height: 0;                          /* let flex children shrink       */
+}
+.block.plain  { background: none; padding: 0; }
+.block.warm   { background: var(--paper-warm); }
+.block.card   { background: var(--paper); border: var(--rule) solid var(--hair); }
+.block.dark   { background: var(--ink); color: var(--paper); }
+.block.dark .pill { background: var(--paper); color: var(--ink); }
+
+/* --------------------------------------------------------------- figures */
+figure { margin: 0; }
+figure.fig { margin: var(--clear) 0; }
+figure.fig:first-child { margin-top: 0; }
+figure.fig:last-child  { margin-bottom: 0; }
+figure.fig img, figure.fig svg { width: 100%; height: auto; }
+figcaption {
+  margin-top: 0.20in;
+  font-size: var(--fs-cap);
+  line-height: 1.26;
+  color: var(--ink-soft);
+}
+figcaption b, figcaption strong { color: var(--ink); }
+
+/* ------------------------------------------------------- hero / takeaway */
+.hero {
+  padding: 0.42in var(--pad);
+  border-radius: var(--radius);
+  background: var(--accent);
+  color: #fff;
+  font-size: var(--fs-hero);
+  font-weight: 700;
+  line-height: 1.14;
+}
+.hero.light { background: var(--butter); color: var(--ink);
+              border-left: 0.16in solid var(--accent); }
+.hero.rule  { background: none; color: var(--ink); padding-left: 0; padding-right: 0;
+              border-top: 0.05in solid var(--ink); border-bottom: 0.05in solid var(--ink); }
+
+/* --------------------------------------------------------- stat callouts */
+.stats { display: flex; gap: var(--gutter); }
+.stat  { flex: 1 1 0; min-width: 0; }
+.stat .n {
+  display: block; font-size: var(--fs-stat); font-weight: 700;
+  line-height: 0.98; color: var(--accent); letter-spacing: -0.02em;
+}
+.stat .l { display: block; margin-top: 0.10in; font-size: var(--fs-statlab);
+           line-height: 1.22; color: var(--ink-soft); }
+.stat.pos .n { color: var(--pos); }
+.stat.neg .n { color: var(--neg); }
+
+/* ------------------------------------------------------- the ask / action */
+.action {
+  padding: var(--pad);
+  border-radius: var(--radius);
+  background: var(--butter);
+  border-left: 0.16in solid var(--accent);
+}
+.action .k {
+  display: block; margin-bottom: 0.12in;
+  font-size: var(--fs-cap); font-weight: 700; letter-spacing: 0.11em;
+  text-transform: uppercase; color: var(--accent);
+}
+.action .t { font-size: var(--fs-lead); font-weight: 700; line-height: 1.20; }
+.who { margin-top: 0.22in; display: flex; gap: var(--gutter); }
+.who div { flex: 1 1 0; font-size: var(--fs-cap); line-height: 1.24; }
+.who b { display: block; color: var(--accent); }
+
+/* -------------------------------------------------------- inline legend */
+.key { display: flex; gap: 0.5in; align-items: center; font-size: var(--fs-cap); }
+.key span { display: flex; align-items: center; gap: 0.16in; }
+.key i {
+  width: 0.30in; height: 0.30in; border-radius: 50%;
+  border: 0.02in solid var(--ink); flex: 0 0 auto;
+}
+.key .kpos i { background: var(--pos); }
+.key .kneg i { background: var(--neg); }
+
+/* ------------------------------------------------------------------ misc */
+.lead   { font-size: var(--fs-lead); line-height: 1.26; }
+.small  { font-size: var(--fs-cap); }
+.muted  { color: var(--muted); }
+.accent { color: var(--accent); }
+.tag {
+  display: inline-block; padding: 0.05in 0.20in; border-radius: 0.30in;
+  background: var(--stone); color: var(--ink-soft);
+  font-size: var(--fs-cap); font-weight: 700;
+}
+.rule { height: var(--rule); background: var(--hair); margin: 0.28in 0; }
+.grow { flex: 1 1 auto; min-height: 0; }
+.pushdown { margin-top: auto; }
+
+ul.ticks { margin: 0; padding: 0; list-style: none; }
+ul.ticks li { position: relative; padding-left: 0.52in; margin-bottom: 0.20in; }
+ul.ticks li:last-child { margin-bottom: 0; }
+ul.ticks li::before {
+  content: ""; position: absolute; left: 0; top: 0.30em;
+  width: 0.26in; height: 0.26in; border-radius: 0.05in; background: var(--accent);
+}
+
+/* ----------------------------------------------------------- footer band */
+.footer {
+  margin-top: auto;
+  padding: 0.36in var(--pad);
+  border-radius: var(--radius);
+  background: var(--band);
+  display: flex; gap: var(--gutter);
+  font-size: var(--fs-micro);
+  line-height: 1.26;
+  color: var(--ink-soft);
+}
+.footer b { color: var(--ink); }
+/* ...but not inside a saturated band. `.footer b` was written for the pale
+   contact strip; when a take-home band lives in the same footer it inherits an
+   ink-dark bold on accent brown — 2.4:1, on the sentence that most needs to
+   carry across a room. Scope it back out. */
+.footer .sowhat b, .footer .hero b, .footer .action b { color: var(--butter); }
+.footer .col-contact { flex: 0 0 22%; }
+.footer .col-refs    { flex: 1 1 auto; }
+.footer .col-fund    { flex: 0 0 24%; }
+.footer .refs { column-count: 2; column-gap: var(--gutter); }
+.footer .refs div { break-inside: avoid; margin-bottom: 0.08in; }
+
+/* ------------------------------------------------------- grid primitives */
+.cols   { display: grid; gap: var(--gutter); min-height: 0; }
+.cols-2 { grid-template-columns: 1fr 1fr; }
+.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+.cols-4 { grid-template-columns: repeat(4, 1fr); }
+.cols-2a{ grid-template-columns: 1.62fr 1fr; }   /* asymmetric 2 + rail     */
+.cols-2b{ grid-template-columns: 1fr 1.62fr; }
+.cols-spine { grid-template-columns: 1fr 1.85fr 1fr; }
+.col    { display: flex; flex-direction: column; gap: var(--gutter); min-height: 0; }
+.span-2 { grid-column: span 2; }
+.span-3 { grid-column: span 3; }
+.span-all { grid-column: 1 / -1; }
+
+/* ------------------------------------------------- visual-register skins */
+.reg-classic  { background: var(--paper-warm); }
+.reg-classic  .block { background: var(--paper); border: var(--rule) solid var(--hair); }
+.reg-classic  h1.title { font-family: "PosterSerif", Georgia, serif; }
+.reg-classic  figcaption { font-family: "PosterSerif", Georgia, serif; }
+
+.reg-minimal  { background: var(--paper); }
+.reg-minimal  .block { background: none; padding: 0; }
+.reg-minimal  .pill { background: none; color: var(--ink); padding: 0 0 0.12in;
+                      border-bottom: 0.045in solid var(--ink); border-radius: 0; }
+.reg-minimal  .footer { background: none; border-top: var(--rule) solid var(--hair);
+                        border-radius: 0; }
+
+.reg-bold     { background: var(--paper); }
+.reg-bold     .pill { background: var(--ink); }
+.reg-bold     h1.title { letter-spacing: -0.022em; }
+
+.reg-dash     { background: var(--stone); }
+.reg-dash     .block { background: var(--paper); border-radius: var(--radius);
+                       box-shadow: 0 0 0 var(--rule) var(--hair); }
+.reg-dash     .pill { background: none; color: var(--accent); padding: 0 0 0.10in;
+                      font-size: var(--fs-h3); letter-spacing: 0.10em;
+                      text-transform: uppercase; border-radius: 0; }
+
+
+/* ------------------------------------------- self-balancing figure blocks */
+/* A figure block claims the leftover column height and the figure scales to
+   fit it, preserving aspect. Columns of unequal content then balance
+   themselves, and a caption can never be squeezed out of view. */
+.block.figblk { flex: 1 1 auto; min-height: 0; }
+.block.figblk > figure.fig { flex: 1 1 auto; min-height: 0;
+                             display: flex; flex-direction: column; }
+.block.figblk > figure.fig > img {
+  flex: 1 1 auto; min-height: 0; width: 100%; height: 100%;
+  object-fit: contain; object-position: center top;
+}
+.block.figblk > figure.fig > figcaption { flex: 0 0 auto; }
+/* everything that is not a flexing figure keeps its natural height */
+.block:not(.figblk), .pill, figcaption, .hero, .actionstrip, .footer { flex: 0 0 auto; }
+
+
+/* Full-bleed figure inside a padded card: the pill and caption stay inset, the
+   figure spans the card edge to edge. Once a figure is width-constrained, width
+   is the only thing that still buys figure area. */
+.block.figblk.bleed { --blkpad: 0.16in; padding: var(--blkpad); }
+.block.figblk.bleed > figure.fig > img {
+  width: calc(100% + 2 * var(--blkpad));
+  margin-left: calc(-1 * var(--blkpad));
+}
+
+/* ==========================================================================
+   v2 additions — manuscript-title lockup, source/method panel, take-home band
+   ========================================================================== */
+
+/* Manuscript title: short main clause, then the full subtitle verbatim. */
+h1.title .sub {
+  display: block;
+  margin-top: 0.10em;
+  font-size: 0.44em;
+  font-weight: 400;
+  font-style: italic;
+  line-height: 1.14;
+  letter-spacing: 0;
+  color: var(--ink-soft);
+}
+
+/* -------------------------------------------- source and method panel ---- */
+.method { background: var(--paper-tint); border: var(--rule) solid var(--hair); }
+.method .mgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.30in; }
+.method h4 {
+  margin: 0 0 0.10in; font-size: var(--fs-cap); font-weight: 700;
+  letter-spacing: 0.10em; text-transform: uppercase; color: var(--accent);
+}
+.method p { font-size: var(--fs-cap); line-height: 1.24; }
+.method .inv { width: 100%; border-collapse: collapse; font-size: var(--fs-cap); }
+.method .inv td { padding: 0.055in 0; border-bottom: 1px solid var(--hair); }
+.method .inv td:last-child { text-align: right; font-weight: 700; white-space: nowrap; }
+.method .inv tr:last-child td { border-bottom: none; }
+.method .eq {
+  display: block; margin: 0.10in 0; padding: 0.14in 0.20in;
+  background: var(--paper); border: var(--rule) solid var(--accent);
+  border-radius: 0.10in; font-style: italic; font-size: var(--fs-body);
+  text-align: center;
+}
+
+/* --------------------------------------------------- take-home band ----- */
+.sowhat {
+  display: flex; align-items: center; gap: 0.46in;
+  padding: 0.34in 0.44in; border-radius: var(--radius);
+  background: var(--accent); color: #fff;
+}
+.sowhat .k {
+  flex: 0 0 auto; font-size: var(--fs-cap); font-weight: 700;
+  letter-spacing: 0.15em; text-transform: uppercase;
+  color: var(--butter); line-height: 1.2;
+}
+.sowhat .t { flex: 1 1 auto; font-size: var(--fs-hero); font-weight: 400;
+             line-height: 1.18; }
+.sowhat .t b { font-weight: 700; color: var(--butter); }
+.sowhat.light { background: var(--butter); color: var(--ink);
+                border-left: 0.18in solid var(--accent); }
+.sowhat.light .k { color: var(--accent); }
+
+/* two glossed classes, used wherever the sign is first named */
+.signkey { display: flex; gap: var(--gutter); }
+.signkey div {
+  flex: 1 1 0; padding: 0.20in 0.24in; border-radius: 0.10in;
+  font-size: var(--fs-cap); line-height: 1.24;
+}
+.signkey .neg { background: #EDF1F8; border-left: 0.11in solid var(--neg); }
+.signkey .pos { background: #FBEDE9; border-left: 0.11in solid var(--pos); }
+.signkey b { display: block; font-size: var(--fs-body); }
+
+
+/* ---------------------------------------------------- masthead variant ---
+   Front matter as one block: identity, the manuscript title, and the source /
+   method strip, all above the rule that separates it from the results. */
+.masthead { display: flex; flex-direction: column; gap: 0.24in;
+            padding-bottom: 0.22in; border-bottom: 0.06in solid var(--accent); }
+.masthead .idrow { display: flex; align-items: center; gap: 0.62in; }
+.masthead .idrow .tt { flex: 1 1 auto; min-width: 0; }
+.masthead .method { padding: 0.24in 0.28in; }
+.masthead .method .mgrid { grid-template-columns: 1.15fr 0.85fr 1.15fr; gap: 0.34in; }

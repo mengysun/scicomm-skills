@@ -1,0 +1,10 @@
+__pycache__/
+*.py[cod]
+.DS_Store
+*.bak-*
+
+# build output, if you ever work inside the repo rather than in a project
+pdf/
+preview/
+notes/
+qa/audit_*.json

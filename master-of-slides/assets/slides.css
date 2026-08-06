@@ -1,0 +1,210 @@
+/* ==========================================================================
+   master-of-slides — shared design system
+
+   One HTML file is one deck. Each `<section class="slide">` is exactly one
+   page, so the browser paginates the deck for you and every slide can be
+   measured individually.
+
+   Set the canvas in the deck's own <style> block:
+       @page { size: 13.333in 7.5in; margin: 0; }        16:9
+       :root { --slide-w: 13.333in; --slide-h: 7.5in; }
+   or 10in x 7.5in for 4:3.
+
+   COLOUR RULE: only --pos / --neg ever encode data, and every use is paired
+   with a word label, so a reader never has to resolve a colour to read a
+   result — which also means the slide survives a bad projector, a photograph,
+   and colour-vision deficiency. Everything else is neutral plus one accent.
+
+   TYPE: the floor that matters is a fraction of slide height, because that is
+   what predicts whether the back row can read it. ~2.8% of height is the floor
+   (16 pt on a 7.5 in slide); 4% (22 pt) is comfortable.
+   ========================================================================== */
+
+:root {
+  /* ---------------------------------------------------------- palette ---- */
+  --pos:        #D56C55;      /* data encoding — class A, always beside its word */
+  --neg:        #738FC1;      /* data encoding — class B, always beside its word */
+  --accent:     #905426;      /* the single chrome accent                       */
+  --ink:        #2E2A26;
+  --ink-soft:   #574F47;
+  --muted:      #8A8078;
+  --hair:       #C9C0B6;
+  --paper:      #FFFFFF;
+  --paper-warm: #FFEDCE;
+  --paper-tint: #FAF4E9;
+  --band:       #E3DCD0;
+  --butter:     #FFEDC0;      /* emphasis *on* the accent, never ink on accent  */
+
+  /* ------------------------------------------------------- type scale ---- */
+  /* sized for a 7.5 in tall slide; scale proportionally for other canvases   */
+  --fs-decktitle: 54pt;
+  --fs-stitle:    34pt;   /* the claim across the top of a content slide      */
+  --fs-lead:      28pt;
+  --fs-body:      24pt;   /* floor 20                                          */
+  --fs-cap:       18pt;   /* floor 16 — captions, axis notes, sources          */
+  --fs-micro:     16pt;   /* absolute floor; use for one line, not a paragraph */
+  --fs-hero:      44pt;
+  --fs-stat:      84pt;
+
+  /* ----------------------------------------------------------- rhythm ---- */
+  --pad:    0.62in;       /* slide margin — nothing but a full-bleed image     */
+  --gutter: 0.42in;       /* between columns                                   */
+  --radius: 0.10in;
+  --rule:   0.028in;
+}
+
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; padding: 0; background: var(--paper);
+  /* Constrain body to the slide width. Without this, `body.clientWidth` reports
+     the render viewport rather than the page box, and every measurement in
+     points comes out scaled by viewport/slide — which looks like a type-size
+     bug in the deck and is really a bug in the stylesheet. */
+  width: var(--slide-w);
+  color: var(--ink);
+  font-family: "SlideSans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: var(--fs-body); line-height: 1.32;
+  -webkit-print-color-adjust: exact; print-color-adjust: exact;
+}
+img, svg { display: block; max-width: 100%; }
+p { margin: 0 0 0.5em; }
+p:last-child { margin-bottom: 0; }
+
+/* ------------------------------------------------------------ the slide -- */
+.slide {
+  position: relative;
+  width: var(--slide-w); height: var(--slide-h);
+  padding: var(--pad);
+  overflow: hidden;            /* anything past the edge is a build failure,
+                                  and render.py reports it rather than hiding it */
+  display: flex; flex-direction: column;
+  page-break-after: always; break-after: page;
+  background: var(--paper);
+}
+.slide:last-child { page-break-after: auto; break-after: auto; }
+
+/* Speaker notes live with their slide so the two cannot drift apart, and are
+   pulled out by scripts/notes.py. They never project. */
+.notes { display: none; }
+
+/* --------------------------------------------------------- slide title --- */
+/* A content slide's title is the claim it makes, not the topic it covers.
+   Read the titles alone and they should be the argument — that is what
+   `audit.py --titles` prints. */
+.stitle {
+  flex: 0 0 auto;
+  margin: 0 0 0.24in;
+  font-size: var(--fs-stitle); font-weight: 700; line-height: 1.12;
+  letter-spacing: -0.008em;
+  color: var(--ink);
+}
+.stitle .qual { display: block; margin-top: 0.06em;
+                font-size: 0.62em; font-weight: 400; color: var(--ink-soft); }
+.stitle.rule { padding-bottom: 0.14in; border-bottom: var(--rule) solid var(--accent); }
+
+/* the body of a content slide claims whatever height the title leaves */
+.body { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
+.cols { flex: 1 1 auto; min-height: 0; display: grid; gap: var(--gutter); }
+.cols-2 { grid-template-columns: 1fr 1fr; }
+.cols-2a { grid-template-columns: 1.5fr 1fr; }
+.cols-3 { grid-template-columns: repeat(3, 1fr); }
+.col { display: flex; flex-direction: column; min-height: 0; gap: 0.2in; }
+
+/* ------------------------------------------------------------- figures --- */
+/* A figure block claims the leftover height and scales inside it, so a slide
+   never has to be hand-tuned to its plate. */
+figure.fig { margin: 0; flex: 1 1 auto; min-height: 0;
+             display: flex; flex-direction: column; }
+figure.fig > img, figure.fig > svg {
+  flex: 1 1 auto; min-height: 0; width: 100%; height: 100%;
+  object-fit: contain; object-position: center;
+}
+figure.fig > figcaption {
+  flex: 0 0 auto; margin-top: 0.12in;
+  font-size: var(--fs-cap); line-height: 1.24; color: var(--ink-soft);
+}
+figcaption b, figcaption strong { color: var(--ink); }
+.fig.left > img  { object-position: left center; }
+.slide.bleed { padding: 0; }
+.slide.bleed .stitle { position: absolute; top: var(--pad); left: var(--pad);
+                       right: var(--pad); z-index: 2; }
+
+/* ------------------------------------------------------- slide flavours -- */
+.slide.title { justify-content: center; background: var(--paper-warm); }
+.slide.title h1 { margin: 0 0 0.22em; font-size: var(--fs-decktitle);
+                  font-weight: 700; line-height: 1.06; letter-spacing: -0.012em; }
+.slide.title .sub { font-size: 0.44em; font-weight: 400; font-style: italic;
+                    color: var(--ink-soft); display: block; margin-top: 0.14em;
+                    line-height: 1.16; }
+.slide.title .who { margin-top: 0.34in; font-size: var(--fs-lead); font-weight: 700; }
+.slide.title .where { margin-top: 0.08in; font-size: var(--fs-cap); color: var(--ink-soft); }
+
+.slide.section { justify-content: center; background: var(--accent); color: #fff; }
+.slide.section .n { font-size: var(--fs-cap); letter-spacing: 0.16em;
+                    text-transform: uppercase; color: var(--butter); }
+.slide.section h2 { margin: 0.10in 0 0; font-size: var(--fs-decktitle);
+                    font-weight: 700; line-height: 1.08; }
+
+.slide.closing { justify-content: center; background: var(--paper-warm); }
+
+/* ------------------------------------------------------------ emphasis --- */
+.takeaway {
+  flex: 0 0 auto; margin-top: 0.22in;
+  padding: 0.20in 0.28in; border-radius: var(--radius);
+  background: var(--accent); color: #fff;
+  font-size: var(--fs-lead); font-weight: 400; line-height: 1.20;
+}
+/* Emphasis inside a saturated band must advance, not recede. Ink-dark bold on
+   the accent is ~2.4:1 and disappears at the back of the room. */
+.takeaway b, .slide.section b { color: var(--butter); }
+.takeaway.light { background: var(--butter); color: var(--ink);
+                  border-left: 0.12in solid var(--accent); }
+.takeaway.light b { color: var(--accent); }
+
+.stat { text-align: center; }
+.stat .n { display: block; font-size: var(--fs-stat); font-weight: 700;
+           line-height: 0.96; color: var(--accent); letter-spacing: -0.02em; }
+.stat .l { display: block; margin-top: 0.08in; font-size: var(--fs-cap);
+           color: var(--ink-soft); line-height: 1.2; }
+.stat.pos .n { color: var(--pos); }
+.stat.neg .n { color: var(--neg); }
+
+/* --------------------------------------------------------------- lists --- */
+/* A bulleted list is usually a slide that has not decided what it is saying.
+   When one is genuinely right — a short parallel set — keep it to 3-5 items of
+   one line each. */
+ul.pts { margin: 0; padding: 0; list-style: none; }
+ul.pts li { position: relative; padding-left: 0.42in; margin-bottom: 0.22in; }
+ul.pts li:last-child { margin-bottom: 0; }
+ul.pts li::before { content: ""; position: absolute; left: 0; top: 0.34em;
+                    width: 0.18in; height: 0.18in; border-radius: 0.04in;
+                    background: var(--accent); }
+
+/* ----------------------------------------------------------- inline key --- */
+.key { display: flex; gap: 0.36in; align-items: center; font-size: var(--fs-cap); }
+.key span { display: flex; align-items: center; gap: 0.12in; }
+.key i { width: 0.2in; height: 0.2in; border-radius: 50%; flex: 0 0 auto;
+         border: 0.015in solid var(--ink); }
+.key .kpos i { background: var(--pos); }
+.key .kneg i { background: var(--neg); }
+
+/* ---------------------------------------------------------------- build --- */
+/* Progressive disclosure in a PDF means repeating the slide with more revealed.
+   Duplicate the section and move `.dim` down the list; the geometry is then
+   identical between steps, so nothing shifts under the audience's eye. */
+.dim { opacity: 0.20; }
+
+/* ---------------------------------------------------------------- chrome -- */
+.slidenum { position: absolute; right: var(--pad); bottom: 0.26in;
+            font-size: var(--fs-micro); color: var(--muted); }
+.credit  { position: absolute; left: var(--pad); bottom: 0.26in;
+           font-size: var(--fs-micro); color: var(--muted); }
+.source  { flex: 0 0 auto; margin-top: 0.14in;
+           font-size: var(--fs-micro); color: var(--muted); }
+
+/* ------------------------------------------------------------- screen ----- */
+/* Scrollable preview when you open the deck in a browser rather than printing. */
+@media screen {
+  body { background: #55504a; padding: 0.4in 0; }
+  .slide { margin: 0 auto 0.4in; box-shadow: 0 0.06in 0.3in rgba(0,0,0,0.35); }
+}
