@@ -1,7 +1,9 @@
 # scicomm-skills
 
-Personal [Claude Code](https://claude.com/claude-code) skills for making things
-that get printed or projected.
+Portable [Agent Skills](https://agentskills.io/) for
+[Claude Code](https://claude.com/claude-code) and
+[Codex](https://developers.openai.com/codex/) that make things for print and
+projection.
 
 | Skill | What it does |
 |---|---|
@@ -17,7 +19,8 @@ its own background, a figure letterboxing away a third of its cell.
 ## Install
 
 Symlink rather than copy, so `git pull` updates the skills in place and no
-machine can quietly run a stale version:
+machine can quietly run a stale version. The installer links the same source
+folders into both agents' personal skill directories:
 
 ```bash
 git clone https://github.com/mengysun/scicomm-skills.git ~/scicomm-skills
@@ -26,15 +29,38 @@ git clone https://github.com/mengysun/scicomm-skills.git ~/scicomm-skills
 
 `install.sh` works out its own location, so the clone can live anywhere — the
 symlinks it creates point wherever you actually put it. It is idempotent, backs
-up anything it would replace, and prints what it did. To install by hand
+up anything it would replace, and prints what it did.
+
+| Agent | Personal skills | Project skills |
+|---|---|---|
+| Claude Code | `~/.claude/skills/` | `<project>/.claude/skills/` |
+| Codex | `~/.agents/skills/` | `<project>/.agents/skills/` |
+
+For a project-local installation, pass the project directory:
+
+```bash
+~/scicomm-skills/install.sh /path/to/project
+```
+
+This creates symlinks in both project skill directories. To install by hand
 instead:
 
 ```bash
+mkdir -p ~/.claude/skills ~/.agents/skills
+
 ln -s ~/scicomm-skills/master-of-poster ~/.claude/skills/master-of-poster
 ln -s ~/scicomm-skills/master-of-slides ~/.claude/skills/master-of-slides
+
+ln -s ~/scicomm-skills/master-of-poster ~/.agents/skills/master-of-poster
+ln -s ~/scicomm-skills/master-of-slides ~/.agents/skills/master-of-slides
 ```
 
-Per-project rather than per-user: symlink into `<project>/.claude/skills/`.
+To remove only the symlinks created by this repository, from both agents:
+
+```bash
+~/scicomm-skills/install.sh --uninstall
+~/scicomm-skills/install.sh --uninstall /path/to/project
+```
 
 ## Requirements
 
