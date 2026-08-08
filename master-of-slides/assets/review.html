@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<!-- The review room. Served by scripts/review.py from <build-dir>/review/.
+     One page of the deck at a time: the slide as rendered, the speaker note
+     beside it, and a comment thread pinned to that page. Everything typed here
+     is POSTed to the local server and recorded in review/comments.json — the
+     file is the record; this page is just the door. No dependencies, no CDN:
+     it must work on a machine that is offline the week before a talk. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Review room</title>
+<style>
+  :root {
+    --ink:#2E2A26; --ink-soft:#574F47; --muted:#8A8078; --hair:#C9C0B6;
+    --paper:#FFFFFF; --tint:#FAF4E9; --cream:#FFEDCE; --stone:#E3DCD0;
+    --accent:#905426; --gold:#EAC264; --ok:#7AA974; --warn:#D56C55;
+    --butter:#FFEDC0;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0; background: var(--tint); color: var(--ink);
+    font: 14px/1.45 -apple-system, "Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    display: flex; flex-direction: column; overflow: hidden;
+  }
+  button, textarea, select { font: inherit; color: inherit; }
+
+  header {
+    flex: 0 0 auto; display: flex; align-items: center; gap: 12px;
+    padding: 10px 16px; background: var(--paper); border-bottom: 1px solid var(--hair);
+  }
+  #brand { font-weight: 700; letter-spacing: .01em; }
+  #brand small { color: var(--muted); font-weight: 400; margin-left: 8px; }
+  #deckSel { border: 1px solid var(--hair); border-radius: 6px; padding: 3px 6px; background: var(--paper); }
+  #deckTitle { color: var(--ink-soft); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  header .spacer { flex: 1; }
+  .chip {
+    border: 1px solid var(--hair); background: var(--paper); border-radius: 999px;
+    padding: 4px 12px; cursor: pointer;
+  }
+  .chip.hot { border-color: var(--gold); background: var(--butter); }
+
+  main { flex: 1 1 auto; min-height: 0; display: grid; grid-template-columns: minmax(0,1fr) 400px; }
+
+  /* ------------------------------------------------------------ stage ---- */
+  #stage { min-width: 0; display: flex; flex-direction: column; padding: 16px 18px 10px; }
+  #slideWrap { flex: 1 1 auto; min-height: 0; display: flex; align-items: center; justify-content: center; }
+  #slideImg {
+    max-width: 100%; max-height: 100%; background: var(--paper);
+    border: 1px solid var(--hair); box-shadow: 0 4px 18px rgba(46,42,38,.12);
+  }
+  #pageBar { flex: 0 0 auto; display: flex; align-items: center; justify-content: center; gap: 14px; padding: 10px 0 8px; }
+  #pageBar button {
+    border: 1px solid var(--hair); background: var(--paper); border-radius: 8px;
+    padding: 4px 14px; cursor: pointer;
+  }
+  #pageBar button:hover { border-color: var(--accent); }
+  #pageNo { min-width: 72px; text-align: center; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+  #strip { flex: 0 0 auto; display: flex; gap: 8px; overflow-x: auto; padding: 4px 2px 8px; }
+  .thumb { position: relative; flex: 0 0 auto; cursor: pointer; border: 2px solid transparent; border-radius: 4px; }
+  .thumb img { display: block; height: 58px; border: 1px solid var(--hair); background: var(--paper); }
+  .thumb.cur { border-color: var(--accent); }
+  .thumb .dot {
+    position: absolute; top: -4px; right: -4px; width: 12px; height: 12px;
+    border-radius: 50%; background: var(--gold); border: 2px solid var(--tint);
+  }
+  .thumb .pn {
+    position: absolute; left: 3px; bottom: 2px; font-size: 10px; color: var(--paper);
+    background: rgba(46,42,38,.62); border-radius: 3px; padding: 0 4px;
+  }
+
+  /* ------------------------------------------------------------ aside ---- */
+  aside { min-height: 0; display: flex; flex-direction: column; background: var(--paper); border-left: 1px solid var(--hair); }
+  #pageTitle { flex: 0 0 auto; padding: 12px 16px 8px; font-weight: 700; font-size: 15px; line-height: 1.3; }
+  aside h3 {
+    margin: 0; padding: 8px 16px 4px; font-size: 11px; font-weight: 600;
+    letter-spacing: .08em; text-transform: uppercase; color: var(--muted);
+  }
+  #noteBody {
+    flex: 0 1 34%; overflow-y: auto; margin: 0 12px 8px; padding: 10px 12px;
+    background: var(--tint); border: 1px solid var(--stone); border-radius: 8px;
+    white-space: pre-wrap; color: var(--ink-soft);
+  }
+  #noteBody.none { color: var(--muted); font-style: italic; }
+  #bubbles { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 2px 12px 8px; }
+  .bubble { margin: 8px 0; padding: 8px 11px; border-radius: 10px; background: var(--cream); }
+  .bubble.agent { background: var(--stone); margin-left: 22px; }
+  .bubble .meta { display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--muted); margin-bottom: 3px; }
+  .bubble .meta .who { font-weight: 700; color: var(--ink-soft); }
+  .bubble .txt { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .bubble .res { margin-top: 5px; font-size: 12px; color: var(--ink-soft); border-top: 1px dashed var(--hair); padding-top: 5px; }
+  .st { border-radius: 999px; padding: 0 8px; font-size: 10.5px; line-height: 16px; }
+  .st.open { background: var(--butter); color: #7a5a13; border: 1px solid var(--gold); }
+  .st.addressed { background: #EAF2E4; color: #3f6b3a; border: 1px solid var(--ok); }
+  .mark { margin-left: auto; border: 0; background: none; color: var(--muted); cursor: pointer; font-size: 11px; text-decoration: underline; }
+  .mark:hover { color: var(--accent); }
+  #empty { color: var(--muted); font-style: italic; padding: 10px 4px; }
+
+  #composer { flex: 0 0 auto; display: flex; gap: 8px; padding: 10px 12px 12px; border-top: 1px solid var(--stone); }
+  #input {
+    flex: 1; resize: none; min-height: 40px; max-height: 130px;
+    border: 1px solid var(--hair); border-radius: 8px; padding: 8px 10px; background: var(--paper);
+  }
+  #input:focus { outline: none; border-color: var(--accent); }
+  #send {
+    align-self: flex-end; border: 0; border-radius: 8px; padding: 9px 16px;
+    background: var(--accent); color: var(--paper); cursor: pointer;
+  }
+  #send:disabled { opacity: .5; cursor: default; }
+
+  /* --------------------------------------------------------- overview ---- */
+  #overview {
+    position: absolute; top: 52px; right: 14px; z-index: 5; width: 380px; max-height: 70vh;
+    overflow-y: auto; background: var(--paper); border: 1px solid var(--hair);
+    border-radius: 10px; box-shadow: 0 8px 28px rgba(46,42,38,.18); padding: 6px;
+  }
+  #overview .row { display: flex; gap: 10px; padding: 8px 10px; border-radius: 8px; cursor: pointer; }
+  #overview .row:hover { background: var(--tint); }
+  #overview .row .pg { flex: 0 0 auto; font-weight: 700; color: var(--accent); font-variant-numeric: tabular-nums; }
+  #overview .row .tx { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ink-soft); }
+  #overview .none { padding: 12px; color: var(--muted); font-style: italic; }
+
+  #offline {
+    position: absolute; top: 10px; left: 50%; transform: translateX(-50%); z-index: 9;
+    background: var(--warn); color: var(--paper); border-radius: 8px; padding: 6px 14px;
+    box-shadow: 0 4px 14px rgba(46,42,38,.25);
+  }
+  [hidden] { display: none !important; }
+
+  @media (max-width: 900px) {
+    body { overflow: auto; }
+    main { grid-template-columns: 1fr; }
+    #stage { padding: 10px; } #slideWrap { min-height: 40vh; }
+    aside { border-left: 0; border-top: 1px solid var(--hair); }
+    #bubbles { max-height: 40vh; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <div id="brand">Review room<small id="root"></small></div>
+  <select id="deckSel" hidden></select>
+  <div id="deckTitle"></div>
+  <div class="spacer"></div>
+  <button id="openCount" class="chip" title="Open comments across all pages">…</button>
+</header>
+
+<main>
+  <section id="stage">
+    <div id="slideWrap"><img id="slideImg" alt="current slide"></div>
+    <div id="pageBar">
+      <button id="prev" title="Previous page (←)">←</button>
+      <div id="pageNo">– / –</div>
+      <button id="next" title="Next page (→)">→</button>
+    </div>
+    <div id="strip"></div>
+  </section>
+  <aside>
+    <div id="pageTitle"></div>
+    <h3>Speaker note</h3>
+    <div id="noteBody"></div>
+    <h3>Comments on this page</h3>
+    <div id="bubbles"></div>
+    <form id="composer">
+      <textarea id="input" placeholder="Comment on this page — Enter sends, Shift+Enter for a new line"></textarea>
+      <button id="send" type="submit">Send</button>
+    </form>
+  </aside>
+</main>
+
+<div id="overview" hidden></div>
+<div id="offline" hidden>Server unreachable — retrying…</div>
+
+<script>
+'use strict';
+const $ = id => document.getElementById(id);
+let state = null;                 // {manifest, comments} as last fetched
+let cur = { deck: null, page: 1 };
+let lastJSON = '', lastStripKey = '';
+
+const deckOf = () => (state.manifest.decks.find(d => d.deck === cur.deck)
+                      || state.manifest.decks[0]);
+const bust = p => p + '?v=' + encodeURIComponent(state.manifest.generated);
+const pageComments = (deck, page) =>
+  state.comments.filter(c => (c.deck === deck || !c.deck) && c.page === page)
+                .sort((a, b) => (a.time || '').localeCompare(b.time || ''));
+const openComments = () => state.comments.filter(c => c.status === 'open');
+const hhmm = t => (t || '').slice(11, 16);
+
+function el(tag, cls, text) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text !== undefined) e.textContent = text;
+  return e;
+}
+
+/* ------------------------------------------------------------- fetch ---- */
+async function refresh() {
+  let s;
+  try {
+    const r = await fetch('/api/state');
+    if (!r.ok) throw new Error(r.status);
+    s = await r.json();
+    if (s.error) throw new Error(s.error);
+  } catch (e) {
+    $('offline').hidden = false;
+    return;
+  }
+  $('offline').hidden = true;
+  const j = JSON.stringify(s);
+  if (j === lastJSON) return;
+  lastJSON = j; state = s;
+  render();
+}
+
+async function post(url, body) {
+  const r = await fetch(url, { method: 'POST',
+    headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  await refresh();
+  return r.ok;
+}
+
+/* ------------------------------------------------------------ render ---- */
+function render() {
+  const decks = state.manifest.decks;
+  if (!decks.length) return;
+  if (!decks.some(d => d.deck === cur.deck)) { cur.deck = decks[0].deck; cur.page = 1; }
+  const deck = deckOf();
+  cur.page = Math.min(Math.max(1, cur.page), deck.pages.length);
+
+  $('root').textContent = state.manifest.root ? ' · ' + state.manifest.root : '';
+  $('deckTitle').textContent = deck.title;
+  const sel = $('deckSel');
+  sel.hidden = decks.length < 2;
+  if (!sel.hidden && sel.options.length !== decks.length) {
+    sel.replaceChildren(...decks.map(d => new Option(d.deck, d.deck)));
+  }
+  if (!sel.hidden) sel.value = cur.deck;
+
+  const nOpen = openComments().length;
+  $('openCount').textContent = nOpen ? '● ' + nOpen + ' open' : 'No open comments';
+  $('openCount').className = 'chip' + (nOpen ? ' hot' : '');
+
+  const stripKey = state.manifest.generated + '|' + cur.deck + '|' +
+    deck.pages.map(p => p.image).join(',');
+  if (stripKey !== lastStripKey) { lastStripKey = stripKey; buildStrip(deck); }
+  renderPage(deck);
+  renderOverview();
+}
+
+function buildStrip(deck) {
+  $('strip').replaceChildren(...deck.pages.map(p => {
+    const t = el('div', 'thumb');
+    t.dataset.page = p.page;
+    const img = el('img'); img.loading = 'lazy'; img.src = bust('/' + p.image);
+    img.alt = 'page ' + p.page; img.draggable = false;
+    t.append(img, el('span', 'pn', p.page));
+    t.onclick = () => goto(p.page);
+    return t;
+  }));
+}
+
+function renderPage(deck) {
+  const p = deck.pages[cur.page - 1];
+  const img = $('slideImg');
+  const want = bust('/' + p.image);
+  if (!img.src.endsWith(want)) img.src = want;
+  $('pageNo').textContent = cur.page + ' / ' + deck.pages.length;
+  $('pageTitle').textContent = p.page + '. ' + (p.title || '(untitled)');
+  $('noteBody').textContent = p.note || 'No speaker note on this page.';
+  $('noteBody').className = p.note ? '' : 'none';
+
+  for (const t of $('strip').children) {
+    const n = +t.dataset.page;
+    t.classList.toggle('cur', n === cur.page);
+    const hasOpen = state.comments.some(c => c.status === 'open' && c.page === n
+                                             && (c.deck === cur.deck || !c.deck));
+    let dot = t.querySelector('.dot');
+    if (hasOpen && !dot) t.append(el('span', 'dot'));
+    if (!hasOpen && dot) dot.remove();
+    if (n === cur.page) t.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  }
+
+  const box = $('bubbles');
+  const atBottom = box.scrollHeight - box.scrollTop - box.clientHeight < 40;
+  const list = pageComments(cur.deck, cur.page);
+  box.replaceChildren(...(list.length ? list.map(bubble)
+    : [el('div', null, 'No comments yet — type below.')]));
+  if (!list.length) box.firstChild.id = 'empty';
+  if (atBottom) box.scrollTop = box.scrollHeight;
+}
+
+function bubble(c) {
+  const b = el('div', 'bubble' + (c.author === 'agent' ? ' agent' : ''));
+  const meta = el('div', 'meta');
+  meta.append(el('span', 'who', c.author === 'agent' ? 'Agent' : 'You'),
+              el('span', null, hhmm(c.time)));
+  if (c.status) meta.append(el('span', 'st ' + c.status,
+                               c.status === 'open' ? 'open' : '✓ addressed'));
+  if (c.status === 'open') {
+    const m = el('button', 'mark', 'mark addressed');
+    m.type = 'button';
+    m.onclick = () => post('/api/comments/resolve', { id: c.id });
+    meta.append(m);
+  }
+  b.append(meta, el('div', 'txt', c.text));
+  if (c.resolution) b.append(el('div', 'res', '↳ ' + c.resolution));
+  return b;
+}
+
+function renderOverview() {
+  const ov = $('overview');
+  const open = openComments();
+  ov.replaceChildren(...(open.length ? open.map(c => {
+    const r = el('div', 'row');
+    r.append(el('span', 'pg', 'p.' + c.page), el('span', 'tx', c.text));
+    r.onclick = () => { if (c.deck) cur.deck = c.deck; goto(c.page); ov.hidden = true; };
+    return r;
+  }) : [el('div', 'none', 'Nothing open — every comment has been addressed.')]));
+}
+
+/* -------------------------------------------------------- interaction ---- */
+function goto(page) {
+  cur.page = page;
+  location.hash = cur.deck + '/' + page;
+  if (state) renderPage(deckOf());
+}
+$('prev').onclick = () => goto(Math.max(1, cur.page - 1));
+$('next').onclick = () => goto(Math.min(deckOf().pages.length, cur.page + 1));
+$('deckSel').onchange = e => { cur.deck = e.target.value; cur.page = 1; render(); };
+$('openCount').onclick = () => { $('overview').hidden = !$('overview').hidden; };
+document.addEventListener('click', e => {
+  if (!$('overview').hidden && !$('overview').contains(e.target)
+      && e.target !== $('openCount')) $('overview').hidden = true;
+});
+
+$('composer').onsubmit = async e => {
+  e.preventDefault();
+  const text = $('input').value.trim();
+  if (!text || !state) return;
+  $('send').disabled = true;
+  const ok = await post('/api/comments', { deck: cur.deck, page: cur.page, text });
+  $('send').disabled = false;
+  if (ok) { $('input').value = ''; $('input').style.height = ''; }
+  $('input').focus();
+};
+$('input').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); $('composer').requestSubmit(); }
+});
+$('input').addEventListener('input', e => {
+  e.target.style.height = ''; e.target.style.height = Math.min(130, e.target.scrollHeight) + 'px';
+});
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
+  if (e.key === 'ArrowLeft') $('prev').click();
+  if (e.key === 'ArrowRight') $('next').click();
+});
+
+/* -------------------------------------------------------------- boot ---- */
+const m = location.hash.slice(1).match(/^(.*)\/(\d+)$/);
+if (m) cur = { deck: decodeURIComponent(m[1]) || null, page: +m[2] };
+refresh();
+setInterval(refresh, 3000);
+</script>
+</body>
+</html>

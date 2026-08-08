@@ -6,7 +6,7 @@ that get printed or projected.
 | Skill | What it does |
 |---|---|
 | [`master-of-poster`](master-of-poster/) | Conference posters from a manuscript, deck, codebase or figure set — authored in HTML/CSS, rendered to PDF at exact trim size, then measured so layout defects fail the build instead of reaching the printer. |
-| [`master-of-slides`](master-of-slides/) | Presentation decks from the same kinds of source — outlined in claim-shaped slide titles with speaker notes, delivered as a measurable multi-page PDF or as `.pptx` when a collaborator needs to edit it. |
+| [`master-of-slides`](master-of-slides/) | Presentation decks from the same kinds of source — outlined in claim-shaped slide titles with speaker notes, delivered as a measurable multi-page PDF or as `.pptx` when a collaborator needs to edit it. Finished decks get a page-by-page speaker script and a local review room: each slide beside its note with a comment thread, every comment recorded in a JSON file the agent works through on the next round. |
 
 Both share a method: **build it, then measure it.** The bundled scripts render
 through headless Chromium and interrogate the DOM for the things that are
@@ -92,7 +92,7 @@ master-of-poster/
 master-of-slides/
 ├── SKILL.md
 ├── references/
-├── scripts/          render · audit · notes · pptxcheck · svgcheck
+├── scripts/          render · audit · notes · review · pptxcheck · svgcheck
 └── assets/
 ```
 

@@ -19,16 +19,22 @@ from pathlib import Path
 from playwright.sync_api import sync_playwright
 
 JS = r"""
-() => [...document.querySelectorAll('.slide')].map((s, i) => {
-  const t = s.querySelector('h1, h2, .stitle');
-  const n = s.querySelector('.notes');
-  const clone = s.cloneNode(true);
-  clone.querySelectorAll('.notes').forEach(x => x.remove());
-  return {n: i + 1,
-          title: t ? (t.innerText || t.textContent).trim().replace(/\s+/g, ' ') : '',
-          onslide: (clone.innerText || clone.textContent || '').trim(),
-          note: n ? (n.innerText || n.textContent || '').trim() : ''};
-})
+() => {
+  // `.notes` is display:none, so innerText hands back the source's own line
+  // breaks and indentation. Keep blank-line paragraph breaks, collapse the rest.
+  const norm = t => t.trim().split(/\n\s*\n/)
+      .map(p => p.replace(/\s+/g, ' ').trim()).filter(Boolean).join('\n\n');
+  return [...document.querySelectorAll('.slide')].map((s, i) => {
+    const t = s.querySelector('h1, h2, .stitle');
+    const n = s.querySelector('.notes');
+    const clone = s.cloneNode(true);
+    clone.querySelectorAll('.notes').forEach(x => x.remove());
+    return {n: i + 1,
+            title: t ? (t.innerText || t.textContent).trim().replace(/\s+/g, ' ') : '',
+            onslide: (clone.innerText || clone.textContent || '').trim(),
+            note: n ? norm(n.innerText || n.textContent || '') : ''};
+  });
+}
 """
 
 

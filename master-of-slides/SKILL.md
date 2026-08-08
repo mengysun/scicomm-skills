@@ -1,6 +1,6 @@
 ---
 name: master-of-slides
-description: Build presentation decks from a manuscript, poster, codebase, or set of results — outline first with claim-shaped slide titles and speaker notes, then either HTML/CSS rendered to a multi-page PDF through headless Chromium (fully measurable: per-slide overflow, type floors, contrast, word budget, figure area) or a .pptx via python-pptx when a collaborator needs to edit it. Use this whenever the user mentions slides, a deck, a talk, a presentation, a seminar, a lab meeting, a conference talk, a job talk, a thesis defence, PowerPoint or Keynote, speaker notes, or asks to turn a paper, poster, or project into something they can present — including follow-up edits to a deck built earlier in the session. Also use it when someone asks for "something to present" or wants figures re-cut for projection even if they never say the word "slides".
+description: Build presentation decks from a manuscript, poster, codebase, or set of results — outline first with claim-shaped slide titles and speaker notes, then either HTML/CSS rendered to a multi-page PDF through headless Chromium (fully measurable: per-slide overflow, type floors, contrast, word budget, figure area) or a .pptx via python-pptx when a collaborator needs to edit it. A finished deck then gets a full page-by-page speaker script and a local review room — each slide beside its note with a comment thread per page, every comment recorded in a JSON file the agent reads back to drive the next revision. Use this whenever the user mentions slides, a deck, a talk, a presentation, a seminar, a lab meeting, a conference talk, a job talk, a thesis defence, PowerPoint or Keynote, speaker notes, or asks to turn a paper, poster, or project into something they can present — including follow-up edits to a deck built earlier in the session. Also use it when someone asks for "something to present", wants figures re-cut for projection, wants to review or comment on a deck page by page, or wants earlier review comments dealt with — even if they never say the word "slides".
 ---
 
 # Master of Slides
@@ -29,7 +29,14 @@ said, ask:
 - **Both** — present from the PDF, hand over the .pptx, and say which is
   canonical, because the moment someone edits one it is stale.
 
-Everything upstream of that choice is shared. Do the outline first.
+Ask the canvas in the same breath — **"16:9 or 4:3?"** is enough. It is one
+line in the deck (`@page { size: 13.333in 7.5in }` against `10in 7.5in`), but
+every slide is composed to it, so changing it later is a re-layout, not a
+resize. 16:9 fits every modern projector and screen share; 4:3 survives in
+older lecture halls and seminar series that ask for it — the venue, not taste,
+decides. If the user does not know, take 16:9 and say you did.
+
+Everything upstream of these choices is shared. Do the outline first.
 
 ## Before anything else — the environment
 
@@ -210,7 +217,42 @@ For the .pptx path, `scripts/pptxcheck.py <deck.pptx>` recovers most of these
 checks from the XML, and `--pdf` renders through LibreOffice so you can see what
 PowerPoint will actually do to your text boxes.
 
-## Phase 5 — Verify and hand over
+## Phase 5 — Speaker notes, page by page
+
+The notes written while building are stage directions — "point at the gap
+first". They are enough to check the division of labour; they are not enough to
+rehearse from. Once the deck measures clean and the shape has stopped moving,
+make a dedicated pass through **every page, in final page order**, and turn each
+note into the words that will actually be said over that slide:
+
+- **The transition in** — the sentence that gets you from the previous slide to
+  this one. If it cannot be written, the order is wrong, and this is the
+  cheapest place left to find that out.
+- **The claim in speakable sentences** — not the title read aloud.
+- **What to point at, and when.**
+- **The numbers that stayed off the slide** — the exact test, the *n*, the
+  effect size, ready for the question.
+- **The exit**, where a slide predictably raises one.
+
+A minute of speaking is roughly 130 words, so a note far past that is usually a
+slide carrying two ideas. Builds repeat their slide, so the full note goes on
+the step where the new element appears and the repeats say what changed.
+`references/deck-architecture.md` § "The notes pass" has the anatomy.
+
+Notes live in the deck itself — `<div class="notes">` per slide, or the notes
+slide on the .pptx path — never in a side document, so the script and the
+slides cannot drift. Then re-render and extract:
+
+```bash
+"$PY" <skill>/scripts/render.py <build-dir>   # every HTML edit gets re-measured
+"$PY" <skill>/scripts/notes.py  <build-dir>   # → notes/<deck>.md, one entry per page
+```
+
+`notes/<deck>.md` is what the user rehearses from: per page, the title, the
+words on the slide, and the words to say. `notes.py` names the pages that have
+no note; after this pass that list should be empty or defended.
+
+## Phase 6 — Verify and hand over
 
 - **The title track is the argument**, read alone.
 - **Every claim on a slide is supported** by the figure under it, and every term
@@ -224,8 +266,9 @@ PowerPoint will actually do to your text boxes.
   for a .pptx, open it if you possibly can.
 - **Nothing outside the build folder changed.**
 
-Deliver the PDF (or .pptx) *and* the extracted notes — the notes are half of what
-makes a deck usable, and the user cannot rehearse from slides alone.
+Deliver the PDF (or .pptx) *and* the speaker script — the notes are half of what
+makes a deck usable, and the user cannot rehearse from slides alone. Then open
+the review room, so their reactions land where they can be worked.
 
 ```
 deck_build_<n>/
@@ -236,9 +279,37 @@ deck_build_<n>/
 ├── figsrc/         figure code (copied here, never run in place) + cached data
 ├── html/*.html     one file per deck
 ├── pdf/*.pdf       one multi-page PDF per deck
-├── notes/*.md      extracted speaker notes
-└── preview/*.png   one PNG per slide
+├── notes/*.md      the speaker script: one entry per page, extracted from the deck
+├── preview/*.png   one PNG per slide
+└── review/         the review room: manifest, index.html, comments.json —
+                    the feedback record, kept beside the build it reviewed
 ```
+
+## Phase 7 — The review room
+
+Hand-over is not the end; it is where the next round starts, and feedback
+converges fastest when the user can see the slide, the note under it, and a
+place to react — one page at a time. Build and serve the review room in the
+background, and send the URL with the delivered files:
+
+```bash
+"$PY" <skill>/scripts/review.py <build-dir>    # → http://127.0.0.1:7788/
+```
+
+Each page shows the rendered slide beside its speaker note with a comment
+thread pinned to that page. Everything the user types is recorded in
+**`<build-dir>/review/comments.json`** — a plain JSON file, so finding the
+feedback later is one read, not an excavation — and the server prints each
+comment as it arrives, so its log is a live feed while they review. Leave it
+serving; killing it at any point loses nothing but the connection, because the
+record is the file.
+
+When the user says they are done (or the comments have stopped), work the
+round: read every open comment before editing anything, revise in a fresh
+build folder, then reply and resolve each comment through the API so the
+thread records what happened. `references/review-room.md` has the comment
+schema, the loop, and what to do when a revision renumbers pages — read it
+before your first round.
 
 ## Working with the user
 
@@ -246,6 +317,10 @@ Decks converge through revisions and the user's ear is what they converge to.
 
 - **Send the file every round**, plus the title track in the message — it is the
   fastest thing for them to react to.
+- **The review room is the comment channel.** Page-anchored feedback lands in
+  `review/comments.json`; it carries the same weight as a chat message, and it
+  is answered in the thread — reply, then resolve — so the record shows what
+  happened to each comment. Direction still arrives in chat; both are one queue.
 - **Report the measurements honestly**, including the ones that flatter you less.
 - **When they ask for one change, make it** — and if it orphans something (a
   definition, a number, a colour key), fix the consequence and say you did.
@@ -263,6 +338,7 @@ Decks converge through revisions and the user's ear is what they converge to.
 | `references/palette-and-type.md` | the palette, choosing within it, type floors, contrast |
 | `references/figures-and-numbers.md` | re-cutting figures for projection, how many numbers, significance |
 | `references/pptx-path.md` | the user needs an editable file |
+| `references/review-room.md` | before the first review round: serving, the comments file, the revise-reply-resolve loop |
 | `references/failure-modes.md` | before the first build, and when something measures wrong |
 
 Scripts take the build directory as their first argument (`pptxcheck.py` takes a

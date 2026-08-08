@@ -57,6 +57,25 @@ Notes live in `<div class="notes">` inside the slide, hidden in print, and
 `scripts/notes.py` pulls them into a script you can rehearse from. A slide with
 no note is worth a second look: usually its text is doing the presenter's job.
 
+### The notes pass
+
+The note written while building a slide is a stage direction — "point at the
+gap first" — enough to check the division of labour, not enough to rehearse
+from. So after the deck measures clean, walk the pages **in final order** and
+write each note out as the words to say: the transition in from the previous
+slide, the claim in speakable sentences, what to point at and when, the numbers
+that stayed off the slide (the exact test, the *n*, the effect size), and — on
+the slides that predictably raise a question — the answer. One minute of
+speaking is roughly 130 words; a note far past that usually means the slide is
+carrying two ideas.
+
+The pass is also the last structural check, which is why it is worth doing as
+its own step rather than while laying out: a transition you cannot write is a
+mis-ordered deck; a note that repeats the previous one is a slide that should
+not exist; a note that is empty belongs to a slide whose text is doing the
+presenter's job. Fix those *before* anyone reviews, and the review is about the
+argument instead.
+
 ## The arc
 
 Most research talks are a variant of this. Adapt the names, keep the shape:

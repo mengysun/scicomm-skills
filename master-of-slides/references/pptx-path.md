@@ -30,6 +30,11 @@ template by hand is a bad use of anyone's time.
 
 The parts worth being careful about:
 
+**Set the canvas before the first slide.** A bare `Presentation()` is 4:3
+(10 × 7.5 in). If the deck was agreed at 16:9, set `prs.slide_width` and
+`prs.slide_height` to 13.333 × 7.5 in — or start from a 16:9 template — before
+adding anything, because placements do not survive a later resize.
+
 **Place figures as vector.** `add_picture` accepts EMF/PDF poorly across versions;
 the reliable path is a high-resolution PNG (300 dpi at final placed size) or an
 SVG on PowerPoint versions that accept it. Emit both from the figure script and
@@ -41,7 +46,10 @@ these as `INHERITED-SIZE` because they are the most common way a .pptx ends up
 illegible.
 
 **Put notes in the notes slide**, not in a text box off-canvas:
-`slide.notes_slide.notes_text_frame.text = "..."`.
+`slide.notes_slide.notes_text_frame.text = "..."`. The page-by-page notes pass
+(SKILL.md Phase 5) applies unchanged here — the full spoken note goes into each
+notes slide, where PowerPoint's presenter view will actually show it;
+`pptxcheck.py` counts the words per note, so an empty one is visible.
 
 **Keep one shape per idea.** Deeply nested groups are what make a deck
 un-editable by the collaborator you built it for.
@@ -66,6 +74,10 @@ python-pptx merely places — a text box that looked fine in the XML can autofit
 down to 10 pt when opened. Nothing but a render will tell you that. If LibreOffice
 is not available, say so plainly and ask the user to open the file once and
 confirm, rather than shipping unmeasured.
+
+The review room works on this path too: `review.py <build-dir> --from-pptx
+pptx/deck.pptx` pulls titles and notes from the file and previews from the
+LibreOffice render — see `references/review-room.md`.
 
 ## The hybrid
 
