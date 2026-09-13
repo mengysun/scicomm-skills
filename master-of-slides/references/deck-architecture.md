@@ -57,24 +57,28 @@ Notes live in `<div class="notes">` inside the slide, hidden in print, and
 `scripts/notes.py` pulls them into a script you can rehearse from. A slide with
 no note is worth a second look: usually its text is doing the presenter's job.
 
-### The notes pass
+### The script pass
 
 The note written while building a slide is a stage direction — "point at the
-gap first" — enough to check the division of labour, not enough to rehearse
-from. So after the deck measures clean, walk the pages **in final order** and
-write each note out as the words to say: the transition in from the previous
-slide, the claim in speakable sentences, what to point at and when, the numbers
-that stayed off the slide (the exact test, the *n*, the effect size), and — on
-the slides that predictably raise a question — the answer. One minute of
-speaking is roughly 130 words; a note far past that usually means the slide is
-carrying two ideas.
+gap first" — enough to check the division of labour, not enough to deliver.
+So after the deck measures clean, walk the pages **in final order** and write
+the script: the words to actually say over each page — the transition in from
+the previous slide, the claim in speakable sentences, `[CLICK]` cues where the
+builds advance, what to point at and when, the numbers that stayed off the
+slide (the exact test, the *n*, the effect size) as backup lines, and — on the
+slides that predictably raise a question — the answer. Write it in the
+speaker's register, speech rather than prose — `references/script-voice.md`
+is the rulebook, and it is short. One minute of speaking is roughly 130 words;
+aim the deck total at 70–80% of the slot, and a page far past a minute usually
+means the slide is carrying two ideas. If the user drafted any of it, their
+text is authoritative — polish grammar only.
 
 The pass is also the last structural check, which is why it is worth doing as
 its own step rather than while laying out: a transition you cannot write is a
-mis-ordered deck; a note that repeats the previous one is a slide that should
-not exist; a note that is empty belongs to a slide whose text is doing the
-presenter's job. Fix those *before* anyone reviews, and the review is about the
-argument instead.
+mis-ordered deck; a script entry that repeats the previous one is a slide that
+should not exist; an empty one belongs to a slide whose text is doing the
+presenter's job. Fix those *before* anyone reviews, and the review is about
+the argument instead.
 
 ## The arc
 
@@ -117,8 +121,8 @@ About **one minute per content slide** for a conference talk, less for a title o
 divider. A 12-minute slot is therefore roughly 10–12 content slides plus front
 and back matter — and the way to fit is to cut ideas, not to compress slides.
 
-Rehearse from the extracted notes rather than the slides. If a note is longer
-than what you can say in a minute, the slide is carrying too much.
+Rehearse from the extracted script rather than the slides. If a page's entry
+is longer than what you can say in a minute, the slide is carrying too much.
 
 ## Deck-level review, before you look at any single slide
 

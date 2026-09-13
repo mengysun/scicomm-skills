@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# Symlink the skills in this repo into Claude Code and Codex skill directories.
+# Symlink the skills for Claude Code, Codex, and Cursor.
 #
-#   ./install.sh                  # user-wide, into ~/.claude/skills and ~/.agents/skills
-#   ./install.sh /path/to/project # project-local, into both skill directories
+#   ./install.sh                  # user-wide; Cursor shares ~/.agents/skills with Codex
+#   ./install.sh /path/to/project # project-local, into both discovery directories
 #   ./install.sh --uninstall      # remove only the symlinks this script made
 #
 # Symlinks rather than copies, so `git pull` updates the installed skills and no
@@ -83,7 +83,7 @@ done
 
 echo
 echo "Installed for Claude Code in ${DESTS[0]}"
-echo "Installed for Codex in       ${DESTS[1]}"
+echo "Installed for Codex and Cursor in ${DESTS[1]}"
 echo "Restart an existing session if it does not detect the new skills."
 echo
 echo "The scripts need: playwright (+ chromium), matplotlib, and poppler."

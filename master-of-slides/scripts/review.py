@@ -1,21 +1,22 @@
-"""Build and serve the review room: each page's slide beside its speaker note,
-with a comment thread anchored to that page.
+"""Build and serve the review room: each page's slide beside its script,
+with the script editable in place and a comment thread anchored to that page.
 
     python review.py <build-dir>                      # build review/, serve on 127.0.0.1:7788
     python review.py <build-dir> --port 7799
     python review.py <build-dir> --build-only         # (re)write review/, no server
     python review.py <build-dir> --from-pptx pptx/deck.pptx   # a .pptx-only build
 
-Run `render.py` first: the room shows `preview/*.png`, and the note shown next
-to each page is re-extracted from the deck source (the `.notes` div, or the
-notes slide of a .pptx), so what the reviewer reads is what the presenter will
-actually rehearse from.
+Run `render.py` first: the room shows `preview/*.png`, and the script shown
+next to each page is re-extracted from the deck source (the `.notes` div, or
+the notes slide of a .pptx), so what the reviewer reads is what the presenter
+will actually say.
 
-Everything the reviewer types lands in **`<build-dir>/review/comments.json`** —
-one plain JSON file, one entry per comment, each pinned to a deck and a page.
-That file is the record; the server is just the door to it. Reading the
-feedback later is a single file read, and the server also prints each comment
-to stdout as it arrives, so a process watching the log sees feedback live.
+Comments land in **`<build-dir>/review/comments.json`**; script edits land in
+**`<build-dir>/review/scripts.json`** — plain JSON files, one entry per
+comment or per edited page, each pinned to a deck and a page. The files are
+the record; the server is just the door to them. Reading the feedback later is
+a file read, and the server prints each comment and edit to stdout as it
+arrives, so a process watching the log sees feedback live.
 
 The server is stdlib-only and stateless: every request re-reads the manifest
 and the comments from disk. So `--build-only` can refresh the manifest under a
@@ -25,13 +26,24 @@ comment arriving mid-write cannot truncate the file.
 
 API (JSON over HTTP, bound to 127.0.0.1 only):
 
-    GET  /api/state                             # {manifest, comments}
-    POST /api/comments            {deck?, page, text, author?, re?}
+    GET  /api/state                             # {manifest, comments, scripts}
+    POST /api/comments            {deck?, page, text, author?, re?, about?}
     POST /api/comments/resolve    {id, resolution?, status?}
+    POST /api/script              {deck?, page, text, baseTime?}
+    POST /api/script/merged       {deck?, page}
 
 `author` is "user" (default) or "agent"; `re` threads a reply under an earlier
-comment's id. User comments start with `status: "open"`; resolve flips one to
-"addressed" once the deck actually changed — not before.
+comment's id; `about` optionally aims a comment at "slide" or "script". User
+comments start with `status: "open"`; resolve flips one to "addressed" once
+the deck actually changed — not before.
+
+A script edit upserts one entry per (deck, page) with `status: "pending"`; the
+user's text is authoritative and waits to be folded verbatim into the deck
+source, after which the agent posts /api/script/merged. `baseTime` is the
+`time` of the entry the client loaded (null for none): if the entry on disk is
+newer, the save is refused with 409 instead of silently clobbering it — a
+stale page must never overwrite newer work. An empty `text` discards the
+pending edit.
 """
 import argparse
 import json
@@ -61,7 +73,7 @@ JS = r"""
     const n = s.querySelector('.notes');
     return {n: i + 1,
             title: t ? (t.innerText || t.textContent).trim().replace(/\s+/g, ' ') : '',
-            note: n ? norm(n.innerText || n.textContent || '') : ''};
+            script: n ? norm(n.innerText || n.textContent || '') : ''};
   });
 }
 """
@@ -126,7 +138,7 @@ def extract_pptx(root, pptx_path):
         note = ""
         if slide.has_notes_slide:
             note = (slide.notes_slide.notes_text_frame.text or "").strip()
-        rows.append({"n": i, "title": title, "note": note})
+        rows.append({"n": i, "title": title, "script": note})
 
     # Previews need a PDF. Reuse one if a render already exists (render.py for
     # the hybrid path, pptxcheck --pdf for pptx-only), else convert here.
@@ -167,7 +179,7 @@ def build(root, which, from_pptx):
         out.append({"deck": stem,
                     "title": rows[0]["title"] if rows and rows[0]["title"] else stem,
                     "pages": [{"page": r["n"], "title": r["title"],
-                               "note": r["note"], "image": images[r["n"]]}
+                               "script": r["script"], "image": images[r["n"]]}
                               for r in rows]})
 
     rdir = root / "review"
@@ -180,14 +192,18 @@ def build(root, which, from_pptx):
                 rdir / "index.html")
     if not (rdir / "comments.json").exists():
         write_json(rdir / "comments.json", {"comments": []})
+    if not (rdir / "scripts.json").exists():
+        write_json(rdir / "scripts.json", {"edits": []})
 
     n_open = sum(1 for c in json.loads((rdir / "comments.json").read_text())["comments"]
                  if c.get("status") == "open")
+    n_pend = sum(1 for e in json.loads((rdir / "scripts.json").read_text())["edits"]
+                 if e.get("status") == "pending")
     for d in out:
-        noteless = sum(1 for p in d["pages"] if not p["note"])
+        unscripted = sum(1 for p in d["pages"] if not p["script"])
         print(f"review: {d['deck']}  {len(d['pages'])} pages"
-              + (f"  ({noteless} without a note)" if noteless else ""))
-    print(f"review: {n_open} open comment(s) in review/comments.json")
+              + (f"  ({unscripted} without a script)" if unscripted else ""))
+    print(f"review: {n_open} open comment(s), {n_pend} pending script edit(s)")
 
 
 class Handler(SimpleHTTPRequestHandler):
@@ -222,9 +238,13 @@ class Handler(SimpleHTTPRequestHandler):
             try:
                 manifest = json.loads((rdir / "manifest.json").read_text())
                 comments = json.loads((rdir / "comments.json").read_text())["comments"]
+                spath = rdir / "scripts.json"
+                scripts = (json.loads(spath.read_text())["edits"]
+                           if spath.exists() else [])
             except (OSError, json.JSONDecodeError, KeyError) as e:
                 return self._json({"error": f"cannot read review state: {e}"}, 500)
-            return self._json({"manifest": manifest, "comments": comments})
+            return self._json({"manifest": manifest, "comments": comments,
+                               "scripts": scripts})
         super().do_GET()
 
     def _body(self):
@@ -260,6 +280,8 @@ class Handler(SimpleHTTPRequestHandler):
                            "time": now()}
                 if body.get("re"):
                     comment["re"] = str(body["re"])
+                if body.get("about") in ("slide", "script"):
+                    comment["about"] = body["about"]
                 if author == "user":
                     comment["status"] = "open"
                 data["comments"].append(comment)
@@ -284,6 +306,71 @@ class Handler(SimpleHTTPRequestHandler):
             print(f"[{now()[11:16]}] {cid} -> {status}", flush=True)
             return self._json({"ok": True, "comment": hit})
 
+        if path == "/api/script":
+            spath = rdir / "scripts.json"
+            text = str(body.get("text") if body.get("text") is not None else "")
+            text = text.replace("\r\n", "\n").strip()[:20000]
+            try:
+                page = int(body.get("page"))
+            except (TypeError, ValueError):
+                page = 0
+            deck = str(body.get("deck") or "")
+            if page < 1:
+                return self._json({"error": "need page >= 1"}, 400)
+            base = body.get("baseTime")   # entry time the client loaded; None = none
+            with LOCK:
+                data = (json.loads(spath.read_text()) if spath.exists()
+                        else {"edits": []})
+                hit = next((e for e in data["edits"]
+                            if e.get("deck") == deck and e.get("page") == page), None)
+                # A stale page must never clobber unfolded user text: refuse
+                # when the PENDING entry on disk is newer than the one the
+                # client based its edit on. A merged entry is history — its
+                # text is already in the deck — so writing over it is the
+                # normal next-edit flow, not a clobber.
+                pending = hit is not None and hit.get("status") == "pending"
+                if pending and (hit.get("time") or "") != (base or ""):
+                    return self._json({"error": "stale",
+                                       "entry": hit}, 409)
+                if not text:              # discard the pending edit
+                    if pending:
+                        data["edits"].remove(hit)
+                        write_json(spath, data)
+                        print(f"[{now()[11:16]}] script edit on {deck or 'deck'} "
+                              f"p.{page} discarded", flush=True)
+                    return self._json({"ok": True, "entry": None})
+                entry = {"deck": deck, "page": page, "text": text,
+                         "time": now(), "status": "pending"}
+                if hit is None:
+                    data["edits"].append(entry)
+                else:
+                    hit.update(entry)
+                    entry = hit
+                write_json(spath, data)
+            print(f"[{entry['time'][11:16]}] script edit on {deck or 'deck'} "
+                  f"p.{page} ({len(text.split())} words)", flush=True)
+            return self._json({"ok": True, "entry": entry})
+
+        if path == "/api/script/merged":
+            spath = rdir / "scripts.json"
+            try:
+                page = int(body.get("page"))
+            except (TypeError, ValueError):
+                page = 0
+            deck = str(body.get("deck") or "")
+            with LOCK:
+                data = (json.loads(spath.read_text()) if spath.exists()
+                        else {"edits": []})
+                hit = next((e for e in data["edits"]
+                            if e.get("deck") == deck and e.get("page") == page), None)
+                if hit is None:
+                    return self._json({"error": f"no edit for {deck!r} p.{page}"}, 404)
+                hit["status"] = "merged"
+                write_json(spath, data)
+            print(f"[{now()[11:16]}] script edit on {deck or 'deck'} "
+                  f"p.{page} -> merged", flush=True)
+            return self._json({"ok": True, "entry": hit})
+
         return self._json({"error": "unknown endpoint"}, 404)
 
 
@@ -299,8 +386,9 @@ def serve(root, port):
     print(f"review room:  http://127.0.0.1:{port}/")
     print(f"serving:      {root}")
     print(f"comments:     {root / 'review' / 'comments.json'}")
-    print("comments are printed here as they arrive; Ctrl-C stops the server "
-          "(the file keeps everything).", flush=True)
+    print(f"script edits: {root / 'review' / 'scripts.json'}")
+    print("comments and edits are printed here as they arrive; Ctrl-C stops "
+          "the server (the files keep everything).", flush=True)
     try:
         httpd.serve_forever()
     except KeyboardInterrupt:

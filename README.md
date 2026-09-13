@@ -1,9 +1,9 @@
 # scicomm-skills
 
 Portable [Agent Skills](https://agentskills.io/) for
-[Claude Code](https://claude.com/claude-code) and
-[Codex](https://developers.openai.com/codex/) that make things for print and
-projection.
+[Claude Code](https://claude.com/claude-code),
+[Codex](https://developers.openai.com/codex/), and
+[Cursor](https://cursor.com/) that make things for print and projection.
 
 | Skill | What it does |
 |---|---|
@@ -20,7 +20,7 @@ its own background, a figure letterboxing away a third of its cell.
 
 Symlink rather than copy, so `git pull` updates the skills in place and no
 machine can quietly run a stale version. The installer links the same source
-folders into both agents' personal skill directories:
+folders into two discovery directories used by all three agents:
 
 ```bash
 git clone https://github.com/mengysun/scicomm-skills.git ~/scicomm-skills
@@ -35,6 +35,11 @@ up anything it would replace, and prints what it did.
 |---|---|---|
 | Claude Code | `~/.claude/skills/` | `<project>/.claude/skills/` |
 | Codex | `~/.agents/skills/` | `<project>/.agents/skills/` |
+| Cursor | `~/.agents/skills/` | `<project>/.agents/skills/` |
+
+Cursor also supports `.cursor/skills/`, but the installer deliberately uses
+the shared `.agents/skills/` location so Codex and Cursor load the same links
+without duplicate installations.
 
 For a project-local installation, pass the project directory:
 
@@ -55,7 +60,7 @@ ln -s ~/scicomm-skills/master-of-poster ~/.agents/skills/master-of-poster
 ln -s ~/scicomm-skills/master-of-slides ~/.agents/skills/master-of-slides
 ```
 
-To remove only the symlinks created by this repository, from both agents:
+To remove only the symlinks created by this repository, from all three agents:
 
 ```bash
 ~/scicomm-skills/install.sh --uninstall

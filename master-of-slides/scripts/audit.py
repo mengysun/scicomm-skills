@@ -152,7 +152,7 @@ def main(argv):
             if titles_only:
                 continue
 
-            print(f"\n{'#':>3}  {'words':>5}{'notes':>6}{'minPt':>7}{'%h':>6}"
+            print(f"\n{'#':>3}  {'words':>5}{'scrpt':>6}{'minPt':>7}{'%h':>6}"
                   f"{'contrast':>10}{'fig%':>7}  flags")
             print("-" * 76)
             for r in rows:

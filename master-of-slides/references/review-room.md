@@ -18,15 +18,17 @@ PY=$(<skill>/scripts/ensure_env.sh)
 Run the serving form **in the background** — it stays up until killed — and
 give the user the URL. `render.py` must have run since the last edit: the room
 shows `preview/*.png`, and it refuses to build when a page has no image,
-because a stale render collects stale comments. Titles and notes are
+because a stale render collects stale comments. Titles and scripts are
 re-extracted from the deck source with the same code `notes.py` uses, so the
-note the reviewer reads is the note the presenter will rehearse.
+script the reviewer reads is the script the presenter will say.
 
-What the user gets, one page at a time: the rendered slide, its speaker note,
-and a comment thread pinned to that page; arrow keys to move; a thumbnail
-strip with a dot on every page that still has an open comment; an overview of
-everything open, click to jump. A build folder with several decks gets a deck
-switcher, and comments carry the deck name.
+What the user gets, one page at a time: the rendered slide, its script — with
+word count, a time estimate at 130 wpm per page and for the whole deck, and an
+**Edit** button — and a comment thread pinned to that page, each comment
+optionally aimed at the slide or at the script; arrow keys to move; a
+thumbnail strip with a dot on every page that still has an open comment; an
+overview of everything open, click to jump. A build folder with several decks
+gets a deck switcher, and comments carry the deck name.
 
 The server is stdlib-only and stateless — every request re-reads the disk. So
 `--build-only` refreshes what a running server shows without a restart, and
@@ -34,6 +36,9 @@ killing it at any moment loses nothing but the connection. It prints each
 comment as it arrives, which makes its log a live feed while the user reviews.
 
 ## The record
+
+Two files, same standing: `comments.json` is what the user *asked for*;
+`scripts.json` is what the user *wrote*. Read both before starting a round.
 
 `<build-dir>/review/comments.json`:
 
@@ -49,12 +54,31 @@ comment as it arrives, which makes its log a live feed while the user reviews.
 ]}
 ```
 
-User comments carry `status`: `"open"` until the deck has actually changed —
-or a reason not to change it has been given — then `"addressed"`, optionally
-with a one-line `resolution`. Agent replies are ordinary comments with
-`author: "agent"` and `re` naming what they answer. Read the file directly;
-**write through the API**, so the open page updates on its next poll and two
-writers cannot interleave:
+A comment may carry `about: "slide"` or `about: "script"` when the user aimed
+it; absent means the whole page. User comments carry `status`: `"open"` until
+the deck has actually changed — or a reason not to change it has been given —
+then `"addressed"`, optionally with a one-line `resolution`. Agent replies are
+ordinary comments with `author: "agent"` and `re` naming what they answer.
+
+`<build-dir>/review/scripts.json` — one entry per edited page, newest text
+only (the deck source keeps the original):
+
+```json
+{"edits": [
+  {"deck": "talk", "page": 4,
+   "text": "So what does this buy us? [CLICK — cost panel] About a tenth of…",
+   "time": "2026-08-10T21:40:12-04:00", "status": "pending"}
+]}
+```
+
+`"pending"` means the words on disk in the deck source are older than what the
+user wants said. **The edit is authoritative text, not a suggestion** — the
+user rewriting their own talk in their own voice. Fold it into the deck source
+verbatim (fix outright typos, nothing else — see
+`references/script-voice.md` § "Polishing a draft"), and only after the fold
+is rendered, mark it `"merged"`. Read the files directly; **write through the
+API**, so the open page updates on its next poll and two writers cannot
+interleave:
 
 ```bash
 curl -s -X POST http://127.0.0.1:7788/api/comments \
@@ -65,21 +89,34 @@ curl -s -X POST http://127.0.0.1:7788/api/comments \
 curl -s -X POST http://127.0.0.1:7788/api/comments/resolve \
   -H 'Content-Type: application/json' \
   -d '{"id":"c1","resolution":"legend moved below the axis"}'
+
+curl -s -X POST http://127.0.0.1:7788/api/script/merged \
+  -H 'Content-Type: application/json' \
+  -d '{"deck":"talk","page":4}'
 ```
+
+The room's own saves go through `POST /api/script` with a `baseTime` guard: a
+page that loaded an older entry gets a 409 instead of silently clobbering a
+newer one — the same rule protects you, so never edit `scripts.json` by hand
+while the server is up.
 
 ## The loop
 
 1. **Wait.** Watch the server log or the file; do not start resolving while
    the user is still typing their way through the deck. When they say they are
    done in chat, or in the thread, the round begins.
-2. **Read every open comment before editing anything.** Comments interact:
-   two about one figure are one edit; "make it bigger" and "add the CI" on the
-   same page collide. Plan the round, then touch the deck.
-3. **A comment on a slide is a comment on its note.** If the slide changes,
-   its speaker note almost always has to move with it — re-read it every time.
+2. **Read every open comment and every pending script edit before editing
+   anything.** They interact: two comments about one figure are one edit; a
+   comment asking to cut a slide collides with a script edit on it. Plan the
+   round, then touch the deck.
+3. **A comment on a slide is a comment on its script.** If the slide changes,
+   the words over it almost always move too — re-read them every time. And a
+   pending script edit is folded **verbatim** into the deck source; grammar
+   fixes only, never a rewrite toward your own phrasing.
 4. **Revise in a new build folder** — the non-negotiable applies to review
-   rounds — and copy `review/comments.json` forward, so the reviewed version
-   keeps its record and the new version continues the thread.
+   rounds — and copy `review/comments.json` **and `review/scripts.json`**
+   forward, so the reviewed version keeps its record and the new version
+   continues the thread.
 5. **Re-measure what you touched** (render, audit, notes), then
    `review.py <new-build-dir> --build-only`, kill the old server, and serve
    the new folder **on the same port**. The user's open page reconnects on its
@@ -87,6 +124,8 @@ curl -s -X POST http://127.0.0.1:7788/api/comments/resolve \
 6. **Reply and resolve each comment, after the fix is rendered** — never
    before, because resolving is the claim that the change exists. Name what
    changed and where, especially when it moved: "now p.9 in this round."
+   Script edits follow the same rule: `POST /api/script/merged` only after the
+   rebuilt room is serving the folded text, so "merged" is never a promise.
 7. **Disagreement gets a reply too.** The reason goes in the thread, where the
    disagreement happened, and then the comment is resolved with it — leaving
    feedback to age out unanswered is not a revision strategy.
@@ -95,9 +134,11 @@ curl -s -X POST http://127.0.0.1:7788/api/comments/resolve \
 
 ## When pages shift
 
-Comments pin to the page numbers of the build they were written against. A
-revision that splits, cuts, or reorders slides renumbers everything after the
-change, so a carried-forward thread can point at pages that moved. Never edit
+Comments and script edits pin to the page numbers of the build they were
+written against. A revision that splits, cuts, or reorders slides renumbers
+everything after the change, so a carried-forward thread can point at pages
+that moved — fold pending script edits into the pages they *meant*, and say
+where the text landed. Never edit
 the user's comment text to compensate — it is the record — put the new
 location in the reply and resolve. The room clamps out-of-range page numbers
 instead of dropping them.

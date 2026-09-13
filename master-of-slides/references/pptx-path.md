@@ -45,11 +45,11 @@ render at whatever the template says, which may be 12 pt. `pptxcheck.py` reports
 these as `INHERITED-SIZE` because they are the most common way a .pptx ends up
 illegible.
 
-**Put notes in the notes slide**, not in a text box off-canvas:
-`slide.notes_slide.notes_text_frame.text = "..."`. The page-by-page notes pass
-(SKILL.md Phase 5) applies unchanged here — the full spoken note goes into each
-notes slide, where PowerPoint's presenter view will actually show it;
-`pptxcheck.py` counts the words per note, so an empty one is visible.
+**Put the script in the notes slide**, not in a text box off-canvas:
+`slide.notes_slide.notes_text_frame.text = "..."`. The slide-by-slide script
+pass (SKILL.md Phase 5) applies unchanged here — the full spoken script goes
+into each notes slide, where PowerPoint's presenter view will actually show
+it; `pptxcheck.py` counts the words per page, so an empty one is visible.
 
 **Keep one shape per idea.** Deeply nested groups are what make a deck
 un-editable by the collaborator you built it for.

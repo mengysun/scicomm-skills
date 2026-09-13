@@ -1,17 +1,18 @@
-"""Extract speaker notes from an HTML deck into a markdown script.
+"""Extract the talk script from an HTML deck into a markdown file.
 
     python notes.py <build-dir> [name-filter ...]
 
 Writes `<build-dir>/notes/<deck>.md`: one entry per slide, with the slide's
-title, the words that will be projected, and the note beneath it.
+title, the words that will be projected, and the words to say beneath it.
 
-Notes live inside each slide in the source (`<div class="notes">`), hidden in
-print, so the script and the slide cannot drift apart. Pulling them out gives
-the presenter something to rehearse from, and gives you a way to check the
-division of labour: anything the audience must hear but should not have to read
-belongs in the note, and a slide whose note is empty is usually a slide whose
-text is doing the presenter's job.
+The script lives inside each slide in the source (`<div class="notes">`),
+hidden in print, so the script and the slide cannot drift apart. Pulling it
+out gives the presenter the rehearsal copy, and gives you a way to check the
+division of labour: anything the audience must hear but should not have to
+read belongs in the script, and a slide with no script is usually a slide
+whose text is doing the presenter's job.
 """
+import json
 import re
 import sys
 from pathlib import Path
@@ -57,7 +58,7 @@ def main(argv):
             page.evaluate("() => document.fonts.ready")
             page.wait_for_timeout(300)
             rows = page.evaluate(JS)
-            lines = [f"# Speaker notes — {f.stem}", ""]
+            lines = [f"# Talk script — {f.stem}", ""]
             missing = []
             for r in rows:
                 lines.append(f"## {r['n']}. {r['title'] or '(untitled)'}")
@@ -69,13 +70,28 @@ def main(argv):
                 if r["note"]:
                     lines.append(r["note"])
                 else:
-                    lines.append("_(no note)_")
+                    lines.append("_(no script yet)_")
                     missing.append(r["n"])
                 lines.append("")
             (outdir / f"{f.stem}.md").write_text("\n".join(lines))
             print(f"wrote {outdir / (f.stem + '.md')}  ({len(rows)} slides)")
             if missing:
-                print(f"  no note on slides: {', '.join(map(str, missing))}")
+                print(f"  no script on slides: {', '.join(map(str, missing))}")
+            # Unfolded review-room edits are newer than the deck source; the
+            # extracted file would silently ship the older words. Say so.
+            spath = root / "review" / "scripts.json"
+            if spath.exists():
+                try:
+                    pend = [e for e in json.loads(spath.read_text())["edits"]
+                            if e.get("status") == "pending"
+                            and e.get("deck") in ("", f.stem)]
+                except (ValueError, KeyError):
+                    pend = []
+                if pend:
+                    pages = ", ".join(str(e["page"]) for e in pend)
+                    print(f"  WARNING: {len(pend)} pending script edit(s) in "
+                          f"review/scripts.json (page {pages}) — fold them into "
+                          "the deck source before delivering this file")
         b.close()
     return 0
 
