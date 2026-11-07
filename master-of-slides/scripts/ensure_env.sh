@@ -26,6 +26,11 @@ set -euo pipefail
 
 VENV="${SCICOMM_VENV:-$HOME/.local/share/scicomm-skills/venv}"
 PY="$VENV/bin/python"
+# Major-version bounds: a new major release cannot change the toolchain under
+# a poster or deck unless someone raises the bound here on purpose.
+PLAYWRIGHT_SPEC="playwright>=1.40,<2"
+MATPLOTLIB_SPEC="matplotlib>=3.7,<4"
+PPTX_SPEC="python-pptx>=1.0,<2"
 WANT_PPTX=0
 CHECK_ONLY=0
 for a in "$@"; do
@@ -48,8 +53,8 @@ EOF
 if have_core; then
   if [[ "$WANT_PPTX" == 1 ]] && ! "$PY" -c "import pptx" >/dev/null 2>&1; then
     echo "adding python-pptx to $VENV" >&2
-    if command -v uv >/dev/null 2>&1; then uv pip install --python "$PY" -q python-pptx
-    else "$PY" -m pip install -q python-pptx; fi
+    if command -v uv >/dev/null 2>&1; then uv pip install --python "$PY" -q "$PPTX_SPEC"
+    else "$PY" -m pip install -q "$PPTX_SPEC"; fi
   fi
   echo "$PY"; exit 0
 fi
@@ -65,8 +70,8 @@ if [[ ! -x "$PY" ]]; then
   else python3 -m venv "$VENV" >&2; fi
 fi
 
-PKGS=(playwright matplotlib)
-[[ "$WANT_PPTX" == 1 ]] && PKGS+=(python-pptx)
+PKGS=("$PLAYWRIGHT_SPEC" "$MATPLOTLIB_SPEC")
+[[ "$WANT_PPTX" == 1 ]] && PKGS+=("$PPTX_SPEC")
 if command -v uv >/dev/null 2>&1; then uv pip install --python "$PY" -q "${PKGS[@]}" >&2
 else "$PY" -m pip install -q --upgrade pip >&2; "$PY" -m pip install -q "${PKGS[@]}" >&2; fi
 

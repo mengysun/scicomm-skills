@@ -258,15 +258,24 @@ function el(tag, cls, text) {
 }
 
 /* ------------------------------------------------------------- fetch ---- */
+function offline(msg) {
+  $('offline').textContent = msg;
+  $('offline').hidden = false;
+}
+
 async function refresh() {
   let s;
   try {
     const r = await fetch('/api/state');
+    if (r.status === 403) {
+      offline('No access key — reopen the link review.py printed.');
+      return;
+    }
     if (!r.ok) throw new Error(r.status);
     s = await r.json();
     if (s.error) throw new Error(s.error);
   } catch (e) {
-    $('offline').hidden = false;
+    offline('Server unreachable — retrying…');
     return;
   }
   $('offline').hidden = true;
@@ -440,6 +449,7 @@ $('saveBtn').onclick = async () => {
     r = await fetch('/api/script', { method: 'POST',
       headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
   } catch (e) { pulseErr('Server unreachable — nothing was saved.'); return; }
+  if (r.status === 403) { pulseErr('No access key — reopen the room\'s link.'); return; }
   if (r.status === 409) {
     $('editErr').hidden = false;
     $('editErr').textContent =

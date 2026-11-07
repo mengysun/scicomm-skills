@@ -32,13 +32,12 @@ from matplotlib.patches import FancyArrowPatch, Rectangle  # noqa: E402
 
 HERE = Path(__file__).resolve().parent
 OUTDIR = HERE.parent / "assets" / "figures"
-# Cache whatever you recomputed for the poster next to this file and load it
-# here. Recomputing inside a plotting function is how a poster ends up with a
+# Cache whatever you recomputed for the deck next to this file and load it
+# here. Recomputing inside a plotting function is how a deck ends up with a
 # number the paper does not have.
 DATA_PATH = HERE / "plotdata.json"
 DATA = json.loads(DATA_PATH.read_text()) if DATA_PATH.exists() else {}
 
-# ---------------------------------------------------------------- palette ---
 # ------------------------------------------------------------- the palette ---
 # The full sheet. Draw from it; assign meaning to suit your data.
 TERRA, TERRA_MID, TERRA_PALE = "#D56C55", "#E8B19D", "#F1D4C9"
@@ -63,7 +62,7 @@ INK = "#2E2A26"
 MUTED = "#8A8078"
 FAINT = "#C9C0B6"
 CREAM = "#FFEDCE"
-SAND = "#E3DCD0"
+STONE = "#E3DCD0"
 
 # ------------------------------------------------------------- type scale ---
 FS_TICK = 17
@@ -219,9 +218,9 @@ def emit_stack(name, panels, figsize, letters=True):
 
 
 def emit_grid(name, panels, figsize, ncols=2, letters=True):
-    """Lay panels out on a grid. Manuscript Figure 4 is a 2x2 (downstream
-    quality over follow-on structure); reproducing it as one plate keeps the
-    poster's claim and the paper's figure in one-to-one correspondence."""
+    """Lay panels out on a grid — for the slide where the comparison across
+    panels *is* the point. Otherwise split the panels across slides, one claim
+    each (see references/figures-and-numbers.md)."""
     setup()
     nrows = -(-len(panels) // ncols)
     fig, axes = plt.subplots(nrows, ncols, figsize=figsize)

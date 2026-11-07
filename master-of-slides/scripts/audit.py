@@ -10,8 +10,8 @@ room), lowest text contrast, and the fraction of the slide the figures occupy.
 The **title track** is the cheapest quality check a deck has. Read the titles in
 order with nothing else: if they do not tell the argument on their own, the deck
 does not either, and no amount of layout work will fix that. Slides whose titles
-name a topic ("Results", "Methods") rather than assert a claim ("Positives pay
-off more") show up immediately when you read them as a list.
+name a topic ("Results", "Methods") rather than assert a claim ("Treated plots
+yield more") show up immediately when you read them as a list.
 """
 import json
 import re
@@ -136,6 +136,8 @@ def main(argv):
         page = b.new_page(viewport={"width": 1600, "height": 900})
         for f in files:
             m = PAGE_RE.search(f.read_text())
+            if not m:
+                raise SystemExit(f"{f.name}: no `@page {{ size: W H }}` rule found")
             w_in, h_in = float(m.group(1)), float(m.group(2))
             page.goto(f.resolve().as_uri(), wait_until="networkidle")
             page.emulate_media(media="print")

@@ -67,9 +67,9 @@ repo-local venv beside the results it produced; this one only runs build scripts
 The exception is figure code copied into `figsrc/` that imports the project's own
 modules — run that with the project's python, and everything else with `$PY`.
 
-Two things it cannot install and reports instead: **poppler**
+One thing it cannot install and reports instead: **poppler**
 (`pdfinfo`/`pdftoppm`/`pdfimages`, which `render.py` needs to verify the emitted
-PDF). If either is missing, say so to the user early rather than
+PDF). If it is missing, say so to the user early rather than
 discovering it at the point of failure.
 
 ## Phase 0 — Recon
@@ -279,5 +279,5 @@ Read the one you need; they are written to be consulted, not memorised.
 
 Scripts take the build directory as their first argument:
 `render.py`, `probe.py`, `audit.py`, `svgcheck.py <in.svg> <out.png> [scale]`,
-`contact_sheet.py`. Run them with the interpreter `scripts/ensure_env.sh` prints;
+`contact_sheet.py [--title "..."]`. Run them with the interpreter `scripts/ensure_env.sh` prints;
 it installs what they need apart from poppler, which it checks for and reports.

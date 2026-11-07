@@ -10,10 +10,10 @@ that names its topic:
 
 | Topic title | Claim title |
 |---|---|
-| Results | Positives pay off more |
-| Methods | We can see every pair the field could have studied |
-| Discussion | The tools improved; the bias did not |
-| Follow-on analysis | Their citing papers rank higher too |
+| Results | Treated plots yield more |
+| Methods | Every plot was scored blind to its treatment |
+| Discussion | The gain is real, but small next to the weather |
+| Follow-on analysis | The gain carries into the second season |
 
 Two reasons this matters more than it looks. The audience reads the title before
 you finish the sentence you are on, so a claim title lets them spend the rest of

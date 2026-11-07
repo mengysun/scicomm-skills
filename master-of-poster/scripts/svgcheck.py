@@ -1,7 +1,7 @@
 """Rasterize an SVG through Chromium — the same engine that renders the posters —
 so a figure check never disagrees with the printed result.
 
-    python .../qa/svgcheck.py assets/figures/G0_interaction.svg out.png [scale]
+    python <skill>/scripts/svgcheck.py assets/figures/fig1.svg out.png [scale]
 """
 import sys
 from pathlib import Path

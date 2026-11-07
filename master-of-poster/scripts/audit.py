@@ -28,7 +28,7 @@ PAGE_RE = re.compile(r"@page\s*\{[^}]*size:\s*([\d.]+)in\s+([\d.]+)in", re.S)
 JS = r"""
 () => {
   const B = document.body;
-  // body carries the real page box in print media (see qa/render.py)
+  // body carries the real page box in print media (see scripts/render.py)
   const PW = B.clientWidth, PH = B.clientHeight;
   const px2in = PW / PAGE_W_IN;
 
@@ -163,6 +163,8 @@ def main(argv):
         page = b.new_page(viewport={"width": 1600, "height": 2400})
         for f in files:
             m = PAGE_RE.search(f.read_text())
+            if not m:
+                raise SystemExit(f"{f.name}: no `@page {{ size: W H }}` rule found")
             w_in, h_in = float(m.group(1)), float(m.group(2))
             page.goto(f.resolve().as_uri(), wait_until="networkidle")
             page.emulate_media(media="print")

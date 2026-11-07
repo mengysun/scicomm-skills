@@ -136,6 +136,22 @@ python ~/scicomm-skills/master-of-poster/scripts/audit.py  <build-dir>
 python ~/scicomm-skills/master-of-slides/scripts/audit.py  <build-dir> --titles
 ```
 
+## The review room and its access key
+
+`master-of-slides/scripts/review.py` serves the review room on `127.0.0.1`
+only, and every request must carry a per-user access key. The link the server
+prints includes it; the key itself lives in
+`~/.local/share/scicomm-skills/review-token` (mode 600) and is reused across
+servers, so a restart does not strand an open page. The server also refuses
+requests whose `Host` or `Origin` is not its own, accepts writes only as JSON,
+and serves nothing from the build folder except `review/` and `preview/`.
+
+This matters because the agent treats a comment in the room as an instruction
+from you. Without the key, any web page open in the same browser — or any
+other user on a shared machine — could read the deck or post comments in your
+name. Share the link only with reviewers on the same machine; delete the key
+file to revoke it (a new one is made on the next start).
+
 ## Provenance
 
 These came out of building one poster seven times, with a real author saying
@@ -144,3 +160,7 @@ cost a version — the contrast bug that survived six of them, the histogram
 binned eight times too coarse, the caption quoting one p-value for a two-panel
 figure. The `why` is written down next to each rule because the rule alone does
 not transfer.
+
+## License
+
+MIT — see [LICENSE](LICENSE).

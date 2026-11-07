@@ -133,11 +133,11 @@ set large enough to read from the back, and leave the rest for the notes and the
 questions.
 
 When a number is the point, make it the object: `.stat` sets it at 84 pt with a
-caption under it. "+3.6 percentile points" at 84 pt is remembered; the same number
-inside a sentence at 24 pt is not.
+caption under it. "+4.2% yield" at 84 pt is remembered; the same number inside a
+sentence at 24 pt is not.
 
-Round to the precision the claim needs, and no further. If the claim is "positives
-do better", `+3.6 points` is the claim; `+3.64 points` is noise, and `+3.6357` is
+Round to the precision the claim needs, and no further. If the claim is "treated
+plots yield more", `+4.2%` is the claim; `+4.24%` is noise, and `+4.2371%` is
 noise that invites a question about your error bars.
 
 ## Significance

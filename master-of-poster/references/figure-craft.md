@@ -104,7 +104,7 @@ display scale and still clears 22 pt.
 
 ## Axis labels must be shorter than the panel is tall
 
-A rotated y-label is as long as its string. "Percentile citation rank" sets
+A rotated y-label is as long as its string. "Yield relative to control" sets
 about 5 in; in a stacked pair where each panel has 3.5 in of axes height, it runs
 straight through the panel above. Nothing errors — matplotlib just draws it.
 
