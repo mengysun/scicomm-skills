@@ -16,7 +16,15 @@ PY=$(<skill>/scripts/ensure_env.sh)
 ```
 
 Run the serving form **in the background** — it stays up until killed — and
-give the user the URL. `render.py` must have run since the last edit: the room
+give the user the URL it prints, **token included**
+(`http://127.0.0.1:7788/?token=...`). The room only answers requests that carry
+its access key: binding to 127.0.0.1 keeps it off the network but not away
+from other web pages open in the same browser, or from other users on a shared
+machine, and a comment here carries the user's authority. The key is one per
+user, kept in `~/.local/share/scicomm-skills/review-token`, so the link stays
+valid across restarts and new build folders. Never paste it anywhere public.
+
+`render.py` must have run since the last edit: the room
 shows `preview/*.png`, and it refuses to build when a page has no image,
 because a stale render collects stale comments. Titles and scripts are
 re-extracted from the deck source with the same code `notes.py` uses, so the
@@ -78,20 +86,22 @@ verbatim (fix outright typos, nothing else — see
 `references/script-voice.md` § "Polishing a draft"), and only after the fold
 is rendered, mark it `"merged"`. Read the files directly; **write through the
 API**, so the open page updates on its next poll and two writers cannot
-interleave:
+interleave. Every call sends the access key and a JSON content type:
 
 ```bash
+KEY=$(cat ~/.local/share/scicomm-skills/review-token)
+
 curl -s -X POST http://127.0.0.1:7788/api/comments \
-  -H 'Content-Type: application/json' \
+  -H 'Content-Type: application/json' -H "X-Review-Token: $KEY" \
   -d '{"deck":"talk","page":4,"author":"agent","re":"c1",
        "text":"Moved the legend under the axis."}'
 
 curl -s -X POST http://127.0.0.1:7788/api/comments/resolve \
-  -H 'Content-Type: application/json' \
+  -H 'Content-Type: application/json' -H "X-Review-Token: $KEY" \
   -d '{"id":"c1","resolution":"legend moved below the axis"}'
 
 curl -s -X POST http://127.0.0.1:7788/api/script/merged \
-  -H 'Content-Type: application/json' \
+  -H 'Content-Type: application/json' -H "X-Review-Token: $KEY" \
   -d '{"deck":"talk","page":4}'
 ```
 
@@ -163,3 +173,12 @@ no conversion.
 - **The page says "Server unreachable"** — the server died or is mid-restart
   onto a new folder; the page reconnects by itself once something is listening
   again.
+- **The page says "No access key", or a call returns 403** — the browser was
+  opened without the token link (or the key file was deleted and remade):
+  reopen the URL the server printed. From a script, check the
+  `X-Review-Token` header.
+- **"refused a write from another site" in the log** — something other than
+  the room's own page tried to post to it, and was turned away. Nothing was
+  recorded; mention it to the user.
+- **A call returns 415** — the request was not sent as
+  `Content-Type: application/json`.

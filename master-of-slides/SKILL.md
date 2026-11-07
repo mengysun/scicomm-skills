@@ -126,7 +126,7 @@ Sources vary; the job does not:
 
 Write `content.md` first: the ordered slides, each with **the claim it makes as
 its title**, the evidence on it, and the note you will say. Titles assert —
-"Positives pay off more", not "Results". Read the titles in order with nothing
+"Treated plots yield more", not "Results". Read the titles in order with nothing
 else; if they do not tell the story on its own, fix that before building.
 
 This is the cheapest moment to be wrong, and slide order is the user's call, so
@@ -170,13 +170,13 @@ the browser paginates and every slide can be measured on its own.
 </style>
 
 <section class="slide">
-  <h2 class="stitle">Positives pay off more</h2>
+  <h2 class="stitle">Treated plots yield more</h2>
   <figure class="fig">
-    <img src="../assets/figures/impact.svg" alt="citation rank by class">
-    <figcaption><b>*</b> <i>p</i>&nbsp;&lt;&nbsp;0.05 · <i>n</i> = 1,981</figcaption>
+    <img src="../assets/figures/yield.svg" alt="yield by treatment">
+    <figcaption><b>*</b> <i>p</i>&nbsp;&lt;&nbsp;0.05 · <i>n</i> = 1,240 plots</figcaption>
   </figure>
   <div class="notes">Point at the gap first, then the error bars. Mann–Whitney,
-    p = 0.0099. If asked about magnitude: +3.6 percentile points.</div>
+    p = 0.012. If asked about magnitude: +4.2% yield.</div>
 </section>
 ```
 
@@ -299,8 +299,12 @@ place to react — one page at a time. Build and serve the review room in the
 background, and send the URL with the delivered files:
 
 ```bash
-"$PY" <skill>/scripts/review.py <build-dir>    # → http://127.0.0.1:7788/
+"$PY" <skill>/scripts/review.py <build-dir>    # → http://127.0.0.1:7788/?token=...
 ```
+
+Send the link exactly as printed — the token in it is the room's access key,
+and the room refuses anything that does not carry it. Your own writes through
+the API carry it too (`references/review-room.md` has the calls).
 
 Each page shows the rendered slide beside its script, with a comment thread
 pinned to that page — a comment can target the whole page, the slide, or the

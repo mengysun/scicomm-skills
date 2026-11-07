@@ -23,7 +23,8 @@ in `content.md`, and only then choose how to emit it.
 
 ## Building a .pptx
 
-Use `python-pptx` (`uv pip install python-pptx`). If the user has a house template
+Use `python-pptx` (`<skill>/scripts/ensure_env.sh --pptx` adds it to the shared
+environment). If the user has a house template
 (a `.potx`, or an existing deck with their layouts), start from it —
 `Presentation("template.pptx")` keeps their masters, and matching an institutional
 template by hand is a bad use of anyone's time.

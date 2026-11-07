@@ -70,6 +70,8 @@ def main(argv):
         page = b.new_page(viewport={"width": 1600, "height": 2400})
         for f in files:
             m = PAGE_RE.search(f.read_text())
+            if not m:
+                raise SystemExit(f"{f.name}: no `@page {{ size: W H }}` rule found")
             w_in = float(m.group(1))
             page.goto(f.resolve().as_uri(), wait_until="networkidle")
             page.emulate_media(media="print")

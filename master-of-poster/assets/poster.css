@@ -1,8 +1,7 @@
 /* ==========================================================================
-   IC2S2 poster suite — shared design system
-   "The strength of weird ties" · Sun & McCandlish
+   master-of-poster — shared design system
 
-   Each variant sets its own `@page { size: W H; margin: 0 }` and
+   Each poster sets its own `@page { size: W H; margin: 0 }` and
    `--page-w` / `--page-h`; everything else lives here.
 
    COLOUR: one palette, drawn from for both figures and chrome, so everything
@@ -11,7 +10,8 @@
    not a restriction; reassign them, and add more when your data has more
    classes.
 
-   TYPE FLOORS (at final print size, enforced by qa/check_type.py):
+   TYPE FLOORS (at final print size; scripts/audit.py flags anything under
+   the 22pt caption floor, the rest are checked against the preview):
    title 90pt · authors 40pt · section headers 48pt · body 28pt
    captions 22pt · hero takeaway 60pt
    ========================================================================== */
@@ -43,8 +43,8 @@
   --umber:#905426;      --stone:#E3DCD0;       --butter:#FFEDC0;
 
   /* ------------- semantic roles (the only ones templates use) ------------ */
-  --pos:        var(--terra);      /* positive interactions — data encoding */
-  --neg:        var(--blue-deep);  /* negative interactions — data encoding */
+  --pos:        var(--terra);      /* a starting assignment for a two-group  */
+  --neg:        var(--blue-deep);  /* comparison — rename or reassign freely */
   --accent:     var(--umber);      /* the single chrome accent             */
   --ink:        #2E2A26;
   --ink-soft:   #574F47;
@@ -339,7 +339,7 @@ ul.ticks li::before {
 }
 
 /* ==========================================================================
-   v2 additions — manuscript-title lockup, source/method panel, take-home band
+   Front and closing matter — title lockup, source/method panel, take-home band
    ========================================================================== */
 
 /* Manuscript title: short main clause, then the full subtitle verbatim. */
@@ -391,7 +391,8 @@ h1.title .sub {
                 border-left: 0.18in solid var(--accent); }
 .sowhat.light .k { color: var(--accent); }
 
-/* two glossed classes, used wherever the sign is first named */
+/* a two-class key, each class glossed in a sentence — place it where the
+   two classes are first named */
 .signkey { display: flex; gap: var(--gutter); }
 .signkey div {
   flex: 1 1 0; padding: 0.20in 0.24in; border-radius: 0.10in;

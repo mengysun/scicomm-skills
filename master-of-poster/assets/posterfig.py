@@ -31,7 +31,6 @@ OUTDIR = HERE.parent / "assets" / "figures"
 DATA_PATH = HERE / "plotdata.json"
 DATA = json.loads(DATA_PATH.read_text()) if DATA_PATH.exists() else {}
 
-# ---------------------------------------------------------------- palette ---
 # ------------------------------------------------------------- the palette ---
 # The full sheet. Draw from it; assign meaning to suit your data.
 TERRA, TERRA_MID, TERRA_PALE = "#D56C55", "#E8B19D", "#F1D4C9"
@@ -56,7 +55,7 @@ INK = "#2E2A26"
 MUTED = "#8A8078"
 FAINT = "#C9C0B6"
 CREAM = "#FFEDCE"
-SAND = "#E3DCD0"
+STONE = "#E3DCD0"
 
 # ------------------------------------------------------------- type scale ---
 FS_TICK = 26
@@ -212,9 +211,9 @@ def emit_stack(name, panels, figsize, letters=True):
 
 
 def emit_grid(name, panels, figsize, ncols=2, letters=True):
-    """Lay panels out on a grid. Manuscript Figure 4 is a 2x2 (downstream
-    quality over follow-on structure); reproducing it as one plate keeps the
-    poster's claim and the paper's figure in one-to-one correspondence."""
+    """Lay panels out on a grid. When the source figure is itself a grid (a
+    2x2, say), reproducing it as one plate keeps the poster's claim and the
+    source figure in one-to-one correspondence."""
     setup()
     nrows = -(-len(panels) // ncols)
     fig, axes = plt.subplots(nrows, ncols, figsize=figsize)

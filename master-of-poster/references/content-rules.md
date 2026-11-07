@@ -42,9 +42,11 @@ in isolation. Check each one against the source:
 
 | Written | Actually | Why it matters |
 |---|---|---|
-| "Gene pairs measured — 1,331,306" | the count *after* a p < 0.05 filter; 8.3 M were measured | overstates the denominator by 6× |
-| "Gene–paper links screened — 418,111" | *papers*, per the source's own sentence | wrong unit |
-| "48% of measured pairs" | 48% of *significant* pairs | same slip, in a headline number |
+| "Plots measured — 1,240" | the count *after* a quality filter; 7,400 were measured | misstates the denominator by 6× |
+| "Farms surveyed — 312" | *fields*, per the source's own sentence | wrong unit |
+| "41% of measured plots" | 41% of *filtered* plots | same slip, in a headline number |
+
+(Illustrative numbers.)
 
 The test: for each label, find the sentence in the source that reports that
 number and check the noun. If the source does not report it, see the traceability
@@ -101,8 +103,8 @@ Two things to watch:
 ## Hedges are part of the number
 
 If the source says "slightly but significantly higher", the poster should too.
-Dropping the hedge makes a +0.4 percentile-point effect read like the +3.6 one
-next to it. Carry the source's own qualifiers, especially when two panels with
+Dropping the hedge makes a +0.5% effect read like the +4.2% one next to
+it. Carry the source's own qualifiers, especially when two panels with
 very different effect sizes sit side by side.
 
 ## Audience

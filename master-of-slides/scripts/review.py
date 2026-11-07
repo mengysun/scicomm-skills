@@ -24,7 +24,25 @@ running server after a re-render, and replies posted through the API appear on
 the next poll without a restart. Writes go tmp-then-rename behind a lock, so a
 comment arriving mid-write cannot truncate the file.
 
-API (JSON over HTTP, bound to 127.0.0.1 only):
+Access. The server binds 127.0.0.1 only, and that alone is not enough: any
+web page open in the reviewer's browser can send requests to localhost, and on
+a shared machine (a cluster login node) every other user can reach the port.
+Comments here carry the user's authority, so every request must present the
+room's access key. The key is made once per user and kept in
+`~/.local/share/scicomm-skills/review-token` (mode 600), so restarting the
+server onto a new build folder does not lock out a page that is already open.
+
+  * the browser gets it from the link the server prints
+    (`http://127.0.0.1:7788/?token=...`), which sets a cookie and redirects
+    to the room — share that link only with someone on this machine;
+  * scripts send it as a header:
+    `-H "X-Review-Token: $(cat ~/.local/share/scicomm-skills/review-token)"`.
+
+Requests whose Host or Origin is not this server are refused, a POST must be
+`Content-Type: application/json`, and only `review/` and `preview/` are
+served — not the rest of the build folder.
+
+API (JSON over HTTP; every call needs the access key):
 
     GET  /api/state                             # {manifest, comments, scripts}
     POST /api/comments            {deck?, page, text, author?, re?, about?}
@@ -46,19 +64,30 @@ stale page must never overwrite newer work. An empty `text` discards the
 pending edit.
 """
 import argparse
+import hmac
 import json
+import os
+import posixpath
 import re
+import secrets
 import shutil
 import subprocess
 import sys
 import threading
+import time
 from datetime import datetime
 from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+from urllib.parse import parse_qs, unquote
 
 DEFAULT_PORT = 7788
 LOCK = threading.Lock()
+TOKEN_FILE = Path.home() / ".local" / "share" / "scicomm-skills" / "review-token"
+COOKIE = "review_token"
+SERVED = ("/review", "/preview")      # the only folders the room needs
+LOCKED = ("This review room needs its access key. Open the link review.py "
+          "printed (http://127.0.0.1:<port>/?token=...).")
 
 # Same extraction the notes script uses, so the room and the rehearsal script
 # cannot disagree about what a slide's note says. `.notes` is display:none, so
@@ -87,6 +116,31 @@ def write_json(path, obj):
     tmp = path.with_name(path.name + ".tmp")
     tmp.write_text(json.dumps(obj, indent=2, ensure_ascii=False) + "\n")
     tmp.replace(path)
+
+
+def load_token():
+    """The room's access key: one per user, kept between servers.
+
+    Kept rather than made fresh per run because a review round ends by
+    restarting the server on a new build folder, and the reviewer's open page
+    must reconnect without a new link."""
+    try:
+        TOKEN_FILE.parent.mkdir(parents=True, exist_ok=True)
+        if TOKEN_FILE.exists():
+            tok = TOKEN_FILE.read_text().strip()
+            if len(tok) >= 20:
+                os.chmod(TOKEN_FILE, 0o600)
+                return tok
+        tmp = TOKEN_FILE.with_name(f"{TOKEN_FILE.name}.{os.getpid()}.tmp")
+        fd = os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+        with os.fdopen(fd, "w") as f:
+            f.write(secrets.token_urlsafe(24) + "\n")
+        tmp.replace(TOKEN_FILE)
+        return TOKEN_FILE.read_text().strip()
+    except OSError as e:
+        print(f"note: cannot keep the access key in {TOKEN_FILE} ({e.strerror}); "
+              "using one for this server only", file=sys.stderr)
+        return secrets.token_urlsafe(24)
 
 
 def preview_map(root, stem):
@@ -208,6 +262,8 @@ def build(root, which, from_pptx):
 
 class Handler(SimpleHTTPRequestHandler):
     server_version = "review-room/1"
+    token = ""          # set per server by serve()
+    _last_warn = 0.0
 
     def end_headers(self):
         # Everything here changes underfoot (previews re-render, manifest
@@ -226,13 +282,76 @@ class Handler(SimpleHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
+    def _text(self, msg, code):
+        body = (msg + "\n").encode()
+        self.send_response(code)
+        self.send_header("Content-Type", "text/plain; charset=utf-8")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
+    # ------------------------------------------------------------ access ----
+    def _ours(self):
+        port = self.server.server_address[1]
+        return (f"127.0.0.1:{port}", f"localhost:{port}")
+
+    def _host_ok(self):
+        # A page served from any other name (DNS rebinding) is not this room,
+        # even when it resolves to 127.0.0.1.
+        return self.headers.get("Host", "") in self._ours()
+
+    def _origin_ok(self):
+        origin = self.headers.get("Origin")
+        return origin is None or origin in tuple(f"http://{h}" for h in self._ours())
+
+    def _key_ok(self, offered):
+        return bool(offered) and hmac.compare_digest(offered.encode(),
+                                                     self.token.encode())
+
+    def _authorised(self):
+        # Split the Cookie header by hand: every app on 127.0.0.1 shares it,
+        # and http.cookies gives up at the first one it finds malformed.
+        offered = [v.strip() for k, _, v in
+                   (p.strip().partition("=") for p in
+                    self.headers.get("Cookie", "").split(";"))
+                   if k == COOKIE]
+        offered.append(self.headers.get("X-Review-Token", ""))
+        return any(self._key_ok(t) for t in offered)
+
+    def _warn(self, msg):
+        # Fixed text only: never echo request content into the log an agent
+        # reads. At most once a minute, so a probe cannot flood it.
+        t = time.monotonic()
+        if t - Handler._last_warn > 60:
+            Handler._last_warn = t
+            print(f"[{now()[11:16]}] {msg}", flush=True)
+
+    def list_directory(self, path):
+        self.send_error(404)            # the room never needs a listing
+        return None
+
+    def do_HEAD(self):
+        self.send_error(405)
+
     def do_GET(self):
-        path = self.path.split("?")[0]
+        path, _, query = self.path.partition("?")
+        if not self._host_ok():
+            self._warn("refused a request addressed to another host name")
+            return self._text("wrong Host", 403)
         if path in ("", "/"):
+            offered = parse_qs(query).get("token", [""])[0]
+            if not (self._key_ok(offered) or self._authorised()):
+                return self._text(LOCKED, 403)
             self.send_response(302)
+            if self._key_ok(offered):
+                self.send_header("Set-Cookie",
+                                 f"{COOKIE}={self.token}; Path=/; HttpOnly; "
+                                 "SameSite=Lax; Max-Age=2592000")
             self.send_header("Location", "/review/")
             self.end_headers()
             return
+        if not self._authorised():
+            return self._text(LOCKED, 403)
         if path == "/api/state":
             rdir = Path(self.directory) / "review"
             try:
@@ -245,6 +364,9 @@ class Handler(SimpleHTTPRequestHandler):
                 return self._json({"error": f"cannot read review state: {e}"}, 500)
             return self._json({"manifest": manifest, "comments": comments,
                                "scripts": scripts})
+        clean = posixpath.normpath(unquote(path))
+        if not any(clean == d or clean.startswith(d + "/") for d in SERVED):
+            return self._text("not part of the review room", 404)
         super().do_GET()
 
     def _body(self):
@@ -255,6 +377,15 @@ class Handler(SimpleHTTPRequestHandler):
 
     def do_POST(self):
         path = self.path.split("?")[0]
+        if not (self._host_ok() and self._origin_ok()):
+            self._warn("refused a write from another site")
+            return self._json({"error": "cross-site request refused"}, 403)
+        if not self._authorised():
+            return self._json({"error": LOCKED}, 403)
+        # A JSON content type cannot be sent cross-site without a CORS
+        # preflight, which this server never grants.
+        if self.headers.get_content_type() != "application/json":
+            return self._json({"error": "Content-Type must be application/json"}, 415)
         rdir = Path(self.directory) / "review"
         cpath = rdir / "comments.json"
         try:
@@ -375,7 +506,9 @@ class Handler(SimpleHTTPRequestHandler):
 
 
 def serve(root, port):
-    handler = partial(Handler, directory=str(root))
+    class Room(Handler):
+        token = load_token()
+    handler = partial(Room, directory=str(root))
     try:
         httpd = ThreadingHTTPServer(("127.0.0.1", port), handler)
     except OSError as e:
@@ -383,7 +516,11 @@ def serve(root, port):
             f"cannot bind 127.0.0.1:{port} ({e.strerror}) — an earlier review "
             "server is probably still running. Kill it if it serves a stale "
             "build, or pick another port with --port.")
-    print(f"review room:  http://127.0.0.1:{port}/")
+    print(f"review room:  http://127.0.0.1:{port}/?token={Room.token}")
+    print("              (the link carries the access key; share it only with "
+          "reviewers on this machine)")
+    print(f"access key:   {TOKEN_FILE}  — send as X-Review-Token when writing "
+          "through the API")
     print(f"serving:      {root}")
     print(f"comments:     {root / 'review' / 'comments.json'}")
     print(f"script edits: {root / 'review' / 'scripts.json'}")

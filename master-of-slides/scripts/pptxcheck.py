@@ -14,8 +14,8 @@ does not exist. This recovers most of it:
     actually look like on a projector, because PowerPoint reflows text that
     python-pptx merely places.
 
-Requires `python-pptx` (`uv pip install python-pptx`); `--pdf` additionally
-requires `soffice` on PATH.
+Requires `python-pptx`: run it with the interpreter `ensure_env.sh --pptx`
+prints. `--pdf` additionally requires `soffice` (LibreOffice) on PATH.
 """
 import subprocess
 import sys
@@ -25,7 +25,8 @@ try:
     from pptx import Presentation
     from pptx.util import Emu
 except ImportError:
-    raise SystemExit("needs python-pptx:  uv pip install python-pptx")
+    raise SystemExit("needs python-pptx: run <skill>/scripts/ensure_env.sh --pptx "
+                     "and use the python it prints")
 
 FLOOR_PT = 16.0          # smallest type that survives the back of a room
 WORD_BUDGET = 55
