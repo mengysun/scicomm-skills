@@ -89,20 +89,38 @@ SERVED = ("/review", "/preview")      # the only folders the room needs
 LOCKED = ("This review room needs its access key. Open the link review.py "
           "printed (http://127.0.0.1:<port>/?token=...).")
 
-# Same extraction the notes script uses, so the room and the rehearsal script
-# cannot disagree about what a slide's note says. `.notes` is display:none, so
-# innerText hands back source whitespace; keep blank-line paragraph breaks and
-# collapse the rest.
+# Same extraction the notes script uses (noteText and norm are copied from
+# notes.py; keep them identical), so the room and the rehearsal script cannot
+# disagree about what a slide's note says.
 JS = r"""
 () => {
-  const norm = t => t.trim().split(/\n\s*\n/)
-      .map(p => p.replace(/\s+/g, ' ').trim()).filter(Boolean).join('\n\n');
+  // `.notes` is display:none, so innerText degrades to textContent: it keeps
+  // the source's own line breaks and indentation but puts nothing between
+  // elements, and <p>A.</p><p>B.</p> would read "A.B.". So mark the markup's
+  // breaks in a clone first, with characters source text never holds: PARA
+  // around block elements, LINE for <br> and before each list item or row.
+  // A paragraph then ends at a blank line in the source, a PARA, or two LINEs
+  // in a row (<br><br>); a single LINE stays a line break; any other run of
+  // whitespace collapses to one space.
+  const PARA = '\uE000', LINE = '\uE001';
+  const noteText = el => {
+    const c = el.cloneNode(true);
+    c.querySelectorAll('br').forEach(x => x.replaceWith(LINE));
+    c.querySelectorAll('li, tr').forEach(x => x.before(LINE));
+    c.querySelectorAll('p, div, section, blockquote, pre, h1, h2, h3, h4, h5, h6, ul, ol, table')
+        .forEach(x => { x.before(PARA); x.after(PARA); });
+    return c.textContent;
+  };
+  const norm = t => t.split(/\n\s*\n|\uE000|\uE001\s*\uE001/)
+      .map(p => p.split(LINE).map(l => l.replace(/\s+/g, ' ').trim())
+                 .filter(Boolean).join('\n'))
+      .filter(Boolean).join('\n\n');
   return [...document.querySelectorAll('.slide')].map((s, i) => {
     const t = s.querySelector('h1, h2, .stitle');
     const n = s.querySelector('.notes');
     return {n: i + 1,
             title: t ? (t.innerText || t.textContent).trim().replace(/\s+/g, ' ') : '',
-            script: n ? norm(n.innerText || n.textContent || '') : ''};
+            script: n ? norm(noteText(n)) : ''};
   });
 }
 """
