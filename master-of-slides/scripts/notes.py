@@ -13,7 +13,6 @@ read belongs in the script, and a slide with no script is usually a slide
 whose text is doing the presenter's job.
 """
 import json
-import re
 import sys
 from pathlib import Path
 
@@ -21,19 +20,48 @@ from playwright.sync_api import sync_playwright
 
 JS = r"""
 () => {
-  // `.notes` is display:none, so innerText hands back the source's own line
-  // breaks and indentation. Keep blank-line paragraph breaks, collapse the rest.
-  const norm = t => t.trim().split(/\n\s*\n/)
-      .map(p => p.replace(/\s+/g, ' ').trim()).filter(Boolean).join('\n\n');
+  // `.notes` is display:none, so innerText degrades to textContent: it keeps
+  // the source's own line breaks and indentation but puts nothing between
+  // elements, and <p>A.</p><p>B.</p> would read "A.B.". So mark the markup's
+  // breaks in a clone first, with characters source text never holds: PARA
+  // around block elements, LINE for <br> and before each list item or row.
+  // A paragraph then ends at a blank line in the source, a PARA, or two LINEs
+  // in a row (<br><br>); a single LINE stays a line break; any other run of
+  // whitespace collapses to one space.
+  const PARA = '\uE000', LINE = '\uE001';
+  const noteText = el => {
+    const c = el.cloneNode(true);
+    c.querySelectorAll('br').forEach(x => x.replaceWith(LINE));
+    c.querySelectorAll('li, tr').forEach(x => x.before(LINE));
+    c.querySelectorAll('p, div, section, blockquote, pre, h1, h2, h3, h4, h5, h6, ul, ol, table')
+        .forEach(x => { x.before(PARA); x.after(PARA); });
+    return c.textContent;
+  };
+  const norm = t => t.split(/\n\s*\n|\uE000|\uE001\s*\uE001/)
+      .map(p => p.split(LINE).map(l => l.replace(/\s+/g, ' ').trim())
+                 .filter(Boolean).join('\n'))
+      .filter(Boolean).join('\n\n');
+  // The projected words, by contrast, are read from the rendered slide, where
+  // innerText breaks lines wherever the layout does, including a <span> that
+  // CSS makes display:block (a title's subtitle). A detached clone is not
+  // rendered and would run "policy" into "Documents", so hide the notes in
+  // place for the read and put their style back after.
+  const onSlide = s => {
+    const ns = [...s.querySelectorAll('.notes')];
+    const was = ns.map(x => x.getAttribute('style'));
+    ns.forEach(x => x.style.setProperty('display', 'none', 'important'));
+    const text = s.innerText;
+    ns.forEach((x, k) => was[k] === null ? x.removeAttribute('style')
+                                         : x.setAttribute('style', was[k]));
+    return text;
+  };
   return [...document.querySelectorAll('.slide')].map((s, i) => {
     const t = s.querySelector('h1, h2, .stitle');
     const n = s.querySelector('.notes');
-    const clone = s.cloneNode(true);
-    clone.querySelectorAll('.notes').forEach(x => x.remove());
     return {n: i + 1,
             title: t ? (t.innerText || t.textContent).trim().replace(/\s+/g, ' ') : '',
-            onslide: (clone.innerText || clone.textContent || '').trim(),
-            note: n ? norm(n.innerText || n.textContent || '') : ''};
+            onslide: onSlide(s),
+            note: n ? norm(noteText(n)) : ''};
   });
 }
 """
@@ -55,6 +83,9 @@ def main(argv):
         page = b.new_page(viewport={"width": 1600, "height": 900})
         for f in files:
             page.goto(f.resolve().as_uri(), wait_until="networkidle")
+            # Lay the deck out as render.py prints it, so the on-slide words
+            # are the ones in the PDF.
+            page.emulate_media(media="print")
             page.evaluate("() => document.fonts.ready")
             page.wait_for_timeout(300)
             rows = page.evaluate(JS)
@@ -63,9 +94,9 @@ def main(argv):
             for r in rows:
                 lines.append(f"## {r['n']}. {r['title'] or '(untitled)'}")
                 lines.append("")
-                if r["onslide"]:
-                    body = re.sub(r"\n{2,}", "\n", r["onslide"]).replace("\n", " · ")
-                    lines.append(f"*On the slide:* {body}")
+                shown = [ln.strip() for ln in r["onslide"].splitlines() if ln.strip()]
+                if shown:
+                    lines.append(f"*On the slide:* {' · '.join(shown)}")
                     lines.append("")
                 if r["note"]:
                     lines.append(r["note"])

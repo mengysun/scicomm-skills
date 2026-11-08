@@ -56,6 +56,8 @@ Every word you can move into a note is attention you get back.
 Notes live in `<div class="notes">` inside the slide, hidden in print, and
 `scripts/notes.py` pulls them into a script you can rehearse from. A slide with
 no note is worth a second look: usually its text is doing the presenter's job.
+Inside a note, a paragraph is either text separated by a blank line or its own
+`<p>`; `<br>` and each `<li>` of a cue list stay line breaks.
 
 ### The script pass
 
