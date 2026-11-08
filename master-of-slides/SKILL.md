@@ -36,6 +36,12 @@ resize. 16:9 fits every modern projector and screen share; 4:3 survives in
 older lecture halls and seminar series that ask for it — the venue, not taste,
 decides. If the user does not know, take 16:9 and say you did.
 
+**Ask both as choices, in one go.** With a multiple-choice question tool
+(`AskUserQuestion` in Claude Code, for one), put them in a single call so the
+user clicks rather than types — deliverable: **PDF** (recommended) ·
+**.pptx** · **Both**; canvas: **16:9** (recommended) · **4:3**. Without one,
+ask the two in a line each. Skip whichever the user has already answered.
+
 Everything upstream of these choices is shared. Do the outline first.
 
 ## Before anything else — the environment

@@ -70,7 +70,8 @@ or "a 36×48 poster of this project" is enough for the agent to pick it up.
 The audience is economists, not biologists. The plotting code is in analysis/.
 ```
 
-1. **Two quick questions.** PDF or PowerPoint (or both)? 16:9 or 4:3? Put the
+1. **Two quick questions**, answered by clicking an option where your agent
+   offers them: PDF or PowerPoint (or both)? 16:9 or 4:3? Put the
    length of your slot and who is in the room in your request: they decide how
    many slides there are and which terms need defining.
 2. **The outline, for your approval.** The agent reads your material and writes
@@ -95,9 +96,9 @@ The audience is economists, not biologists. The plotting code is in analysis/.
 Logos are in logos/.
 ```
 
-1. **One question: the sheet.** What size and orientation does your venue
-   want (36 × 48 in landscape, A0 portrait…)? Put it in your request to skip
-   the question.
+1. **One question: the sheet.** Pick the size and orientation your venue
+   wants (A0 portrait, 36 × 48 in portrait, 48 × 36 in landscape) or type your
+   own. Put it in your request to skip the question.
 2. **The content plan, for your approval.** The title, the one sentence a
    visitor should walk away with, and the sections in order, each with its
    claim and its figure. It stops here so you can reorder before any layout

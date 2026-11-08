@@ -15,9 +15,13 @@ work, and a build that measures itself so nothing broken reaches the printer.
 The venue sets the trim, not taste, and every layout decision downstream — how
 many rows fit, how large a figure can get, what the type floors work out to —
 is computed against it. Changing it once a layout exists is a re-layout, not a
-resize. So if the user has not said, ask before anything else:
-**"What size and orientation — e.g. 36 × 48 in landscape, A0 portrait?"** is
-enough.
+resize. So if the user has not said, ask before anything else — as a choice
+they can click, not a question they have to answer in prose. With a
+multiple-choice question tool (`AskUserQuestion` in Claude Code, for one),
+offer **A0 portrait (33.1 × 46.8 in)**, **36 × 48 in portrait**,
+**48 × 36 in landscape**, and **Not sure yet**; the tool's free-text answer
+covers any other size. Without one, ask in a line: "What size and orientation
+— e.g. 36 × 48 in landscape, A0 portrait?"
 
 - Record it as **width × height** and set exactly that in `@page` and
   `--page-w`/`--page-h` (Phase 3). "48 × 36" and "36 × 48" are different
