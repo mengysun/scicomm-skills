@@ -188,19 +188,22 @@ Share it only with people using the same machine.
     </td>
   </tr>
   <tr>
-    <td><em>AI predictions and the expansion of scientific frontiers</em>, 36 × 54 in</td>
-    <td><em>The strength of weird ties</em>, 36 × 54 in</td>
+    <td valign="top"><em>AI predictions and the expansion of scientific frontiers</em>, 36 × 54 in.<br>
+      From Sun, Choi &amp; Yin, <a href="https://doi.org/10.64898/2026.04.06.716821">bioRxiv (2026)</a> [1].</td>
+    <td valign="top"><em>The strength of weird ties</em>, 36 × 54 in.<br>
+      From Sun &amp; McCandlish, <a href="https://doi.org/10.1101/2025.06.25.661621">bioRxiv (2025)</a> [2].</td>
   </tr>
 </table>
 
-Two posters by this repository's author. Click either one for full size.
+Two posters by this repository's author, each made from the paper linked under
+it. Click either one for full size.
 
 ### Talks
 
 **Partisan disparities in the use of science in policy**, a 20-minute talk
 built from Furnas, LaPira & Wang,
-[*Science* 388, 362–367 (2025)](https://doi.org/10.1126/science.adt9895), and its
-supplementary materials. 30 pages, 16:9, delivered as PDF and PowerPoint with a
+[*Science* 388, 362–367 (2025)](https://doi.org/10.1126/science.adt9895) [3], and
+its supplementary materials. 30 pages, 16:9, delivered as PDF and PowerPoint with a
 full script. The charts here were drawn by the agent from numbers printed in
 the paper; where the deck uses the paper's own figures, they are placed
 unmodified.
@@ -210,8 +213,11 @@ unmodified.
 </p>
 
 **Adaptability and the pivot penalty**, a 12-minute conference talk built from
-Hill, Yin, Stein, Wang, Wang & Jones, *Adaptability and the Pivot Penalty in
-Science and Technology* (2024 preprint). Here every figure is cropped,
+the preprint by Hill, Yin, Stein, Wang, Wang & Jones,
+[*Adaptability and the Pivot Penalty in Science and Technology*](https://arxiv.org/abs/2107.06476)
+(arXiv, 2024) [4], since published as
+[*The pivot penalty in research*, *Nature* 642, 999–1006 (2025)](https://doi.org/10.1038/s41586-025-09048-1)
+[5]. Here every figure is cropped,
 unmodified, from the paper, and the agent built each slide around one: a claim
 for a title, the numbers that matter, and a takeaway.
 
@@ -221,6 +227,24 @@ for a title, the numbers that matter, and a takeaway.
 
 Both talks are demonstrations built from published papers; the research and
 its figures belong to their authors.
+
+### References
+
+1. Sun, M., Choi, S. & Yin, Y. AI predictions and the expansion of scientific
+   frontiers: Evidence from structural biology. *bioRxiv* (2026).
+   <https://doi.org/10.64898/2026.04.06.716821>
+2. Sun, M. & McCandlish, D. M. Meta-Research: Positive genetic interactions
+   have greater scientific impact but are under-represented in the literature.
+   *bioRxiv* (2025). <https://doi.org/10.1101/2025.06.25.661621>
+3. Furnas, A. C., LaPira, T. M. & Wang, D. Partisan disparities in the use of
+   science in policy. *Science* 388, 362–367 (2025).
+   <https://doi.org/10.1126/science.adt9895>
+4. Hill, R., Yin, Y., Stein, C., Wang, X., Wang, D. & Jones, B. F.
+   Adaptability and the pivot penalty in science and technology. *arXiv*
+   2107.06476 (2024). <https://arxiv.org/abs/2107.06476>
+5. Hill, R., Yin, Y., Stein, C., Wang, X., Wang, D. & Jones, B. F. The pivot
+   penalty in research. *Nature* 642, 999–1006 (2025).
+   <https://doi.org/10.1038/s41586-025-09048-1>
 
 ## Tips
 
