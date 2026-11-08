@@ -31,7 +31,9 @@ Give your coding agent the link and ask it to install:
 > Install the skills from https://github.com/mengysun/scicomm-skills
 
 It clones this repository and connects both skills to Claude Code, Codex and
-Cursor at once. (Agents: the procedure is in [INSTALL.md](INSTALL.md).)
+Cursor at once. (Agents: the procedure is in [INSTALL.md](INSTALL.md), which
+also covers the shared environment, the scripts, the colour palette and the
+review room's security.)
 
 Or do it yourself in two lines:
 
@@ -247,18 +249,6 @@ its figures belong to their authors.
   deliberately left for you to decide, and any inconsistencies found in your
   source (a number that differs between the main text and the supplement, for
   instance).
-
-## Where this came from
-
-These skills came out of building one poster seven times, with a real author
-saying what was wrong each round. Most of what is in `references/` is a mistake
-that cost a version: the contrast bug that survived six of them, the histogram
-binned eight times too coarse, the caption quoting one p-value for a two-panel
-figure. The reason is written down next to each rule, because the rule alone
-does not transfer.
-
-For how the skills are put together (the shared environment, the scripts, the
-colour palette, the review room's security), see [INSTALL.md](INSTALL.md).
 
 ## License
 
