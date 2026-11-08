@@ -10,6 +10,27 @@ with somebody else, spend ninety seconds, and leave with one idea or none. The
 whole method below follows from that: large type, few words, figures doing the
 work, and a build that measures itself so nothing broken reaches the printer.
 
+## First: what size is the sheet?
+
+The venue sets the trim, not taste, and every layout decision downstream — how
+many rows fit, how large a figure can get, what the type floors work out to —
+is computed against it. Changing it once a layout exists is a re-layout, not a
+resize. So if the user has not said, ask before anything else:
+**"What size and orientation — e.g. 36 × 48 in landscape, A0 portrait?"** is
+enough.
+
+- Record it as **width × height** and set exactly that in `@page` and
+  `--page-w`/`--page-h` (Phase 3). "48 × 36" and "36 × 48" are different
+  boards; if the user gives two numbers and no orientation, confirm which way up.
+- Metric sizes convert exactly: A0 is 33.1 × 46.8 in (841 × 1189 mm), A1 is
+  23.4 × 33.1 in. Use the venue's own figure rather than rounding.
+- A revision of an existing poster keeps its size unless told otherwise — read
+  it from that poster's `@page`.
+- If they do not know yet, carry on: recon and the content spine do not depend
+  on the sheet. Ask again when you show the spine, because Phase 3 needs it.
+  `references/layout-geometry.md` § "Sizing the sheet" says what each size
+  holds, which is worth passing on if they are choosing.
+
 ## Non-negotiables
 
 **Author in HTML/CSS, render through headless Chromium.** Generating PDF directly

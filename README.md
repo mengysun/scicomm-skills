@@ -95,9 +95,9 @@ The audience is economists, not biologists. The plotting code is in analysis/.
 Logos are in logos/.
 ```
 
-1. **Tell it the sheet.** The skill doesn't ask, so say the size and
-   orientation your venue wants (36×48 in, 48×36 in landscape, A0…) in your
-   request.
+1. **One question: the sheet.** What size and orientation does your venue
+   want (36 × 48 in landscape, A0 portrait…)? Put it in your request to skip
+   the question.
 2. **The content plan, for your approval.** The title, the one sentence a
    visitor should walk away with, and the sections in order, each with its
    claim and its figure. It stops here so you can reorder before any layout
