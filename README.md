@@ -206,10 +206,11 @@ built from Furnas, LaPira & Wang,
 its supplementary materials. 30 pages, 16:9, delivered as PDF and PowerPoint with a
 full script. The charts here were drawn by the agent from numbers printed in
 the paper; where the deck uses the paper's own figures, they are placed
-unmodified.
+unmodified. **[Flip through the whole deck](docs/examples/science-in-policy.pdf)**
+(PDF, 30 pages).
 
 <p align="center">
-  <img src="docs/images/slides-science-in-policy.jpg" alt="Six slides from a talk on partisan disparities in the use of science in policy" width="100%">
+  <a href="docs/examples/science-in-policy.pdf"><img src="docs/images/slides-science-in-policy.jpg" alt="Six slides from a talk on partisan disparities in the use of science in policy" width="100%"></a>
 </p>
 
 **Adaptability and the pivot penalty**, a 12-minute conference talk built from
@@ -220,22 +221,25 @@ the preprint by Hill, Yin, Stein, Wang, Wang & Jones,
 [5]. Here every figure is cropped,
 unmodified, from the paper, and the agent built each slide around one: a claim
 for a title, the numbers that matter, and a takeaway.
+**[Flip through the whole deck](docs/examples/pivot-penalty.pdf)** (PDF, 19 pages).
 
 <p align="center">
-  <img src="docs/images/slides-pivot-penalty.jpg" alt="Six slides from a talk on the pivot penalty in science" width="100%">
+  <a href="docs/examples/pivot-penalty.pdf"><img src="docs/images/slides-pivot-penalty.jpg" alt="Six slides from a talk on the pivot penalty in science" width="100%"></a>
 </p>
 
-Both talks are demonstrations built from published papers; the research and
-its figures belong to their authors.
+Both decks are shown exactly as the agent handed them over, so each title
+slide still carries a `[[TODO]]` for the presenter, venue or date, which nobody
+had given it. Both talks are demonstrations built from published papers; the
+research and its figures belong to their authors.
 
 ### References
 
 1. Sun, M., Choi, S. & Yin, Y. AI predictions and the expansion of scientific
    frontiers: Evidence from structural biology. *bioRxiv* (2026).
    <https://doi.org/10.64898/2026.04.06.716821>
-2. Sun, M. & McCandlish, D. M. Meta-Research: Positive genetic interactions
-   have greater scientific impact but are under-represented in the literature.
-   *bioRxiv* (2025). <https://doi.org/10.1101/2025.06.25.661621>
+2. Sun, M. & McCandlish, D. M. Positive genetic interactions have greater
+   scientific impact but are under-represented in the literature. *bioRxiv*
+   (2025). <https://doi.org/10.1101/2025.06.25.661621>
 3. Furnas, A. C., LaPira, T. M. & Wang, D. Partisan disparities in the use of
    science in policy. *Science* 388, 362–367 (2025).
    <https://doi.org/10.1126/science.adt9895>

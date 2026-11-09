@@ -124,7 +124,7 @@ master-of-slides/
 └── assets/
 ```
 
-`docs/` holds only the README's images and is not installed.
+`docs/` holds only the README's images and example decks, and is not installed.
 
 Scripts take a build directory as their first argument, so they work on any
 project:
