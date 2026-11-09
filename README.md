@@ -237,9 +237,9 @@ research and its figures belong to their authors.
 1. Sun, M., Choi, S. & Yin, Y. AI predictions and the expansion of scientific
    frontiers: Evidence from structural biology. *bioRxiv* (2026).
    <https://doi.org/10.64898/2026.04.06.716821>
-2. Sun, M. & McCandlish, D. M. Positive genetic interactions have greater
-   scientific impact but are under-represented in the literature. *bioRxiv*
-   (2025). <https://doi.org/10.1101/2025.06.25.661621>
+2. Sun, M. & McCandlish, D. M. The strength of weird ties: positive genetic
+   interactions have greater scientific impact but are under-represented in the
+   literature. *bioRxiv* (2025). <https://doi.org/10.1101/2025.06.25.661621>
 3. Furnas, A. C., LaPira, T. M. & Wang, D. Partisan disparities in the use of
    science in policy. *Science* 388, 362–367 (2025).
    <https://doi.org/10.1126/science.adt9895>
