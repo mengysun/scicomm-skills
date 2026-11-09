@@ -193,15 +193,30 @@ Share it only with people using the same machine.
     <td valign="top"><em>The strength of weird ties</em>, 36 × 54 in.<br>
       From Sun &amp; McCandlish, <a href="https://doi.org/10.1101/2025.06.25.661621">bioRxiv (2025)</a> [2].</td>
   </tr>
+  <tr>
+    <td colspan="2" valign="top">
+      <a href="docs/images/poster-science-in-policy.jpg"><img src="docs/images/poster-science-in-policy.jpg" alt="Poster: Partisan disparities in the use of science in policy"></a>
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" valign="top"><em>Partisan disparities in the use of science in policy</em>, 48 × 36 in, landscape.<br>
+      From Furnas, LaPira &amp; Wang, <a href="https://doi.org/10.1126/science.adt9895"><em>Science</em> (2025)</a> [3].</td>
+  </tr>
 </table>
 
-Two posters by this repository's author, each made from the paper linked under
-it. Click either one for full size.
+The first two are by this repository's author, each made from the paper linked
+under it. The third is a demonstration built from someone else's paper, and it
+shows what the skill does when the figures can't be redrawn. Its four plates are
+the journal's own vector artwork, placed unmodified. Because they bring their own
+blue, red and purple, the poster's frame steps back to ink, stone and cream with
+a single brown accent. And it is landscape because figures set in small journal
+type have to be shown at about three times their printed size to be read, which
+a portrait board can't hold. Click any poster for full size.
 
 ### Talks
 
 **Partisan disparities in the use of science in policy**, a 20-minute talk
-built from Furnas, LaPira & Wang,
+built from the same paper as the landscape poster above, Furnas, LaPira & Wang,
 [*Science* 388, 362–367 (2025)](https://doi.org/10.1126/science.adt9895) [3], and
 its supplementary materials. 30 pages, 16:9, delivered as PDF and PowerPoint with a
 full script. The charts here were drawn by the agent from numbers printed in
